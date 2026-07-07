@@ -6,10 +6,10 @@ describe('MainPage', () => {
   it('点击数字后展示对应中文解读', async () => {
     const wrapper = mount(MainPage)
 
-    expect(wrapper.findAll('button')).toHaveLength(13)
+    expect(wrapper.findAll('.tile')).toHaveLength(9)
     expect(wrapper.text()).toContain('开创者')
 
-    await wrapper.findAll('button').find((button) => button.text().includes('7')).trigger('click')
+    await wrapper.findAll('.tile').find((button) => button.text().includes('7')).trigger('click')
 
     expect(wrapper.text()).toContain('探求者')
     expect(wrapper.text()).toContain('追问本质')
@@ -20,8 +20,89 @@ describe('MainPage', () => {
 
     await wrapper.find('input[type="date"]').setValue('1942-06-18')
 
-    expect(wrapper.text()).toContain('愿景建造者')
-    expect(wrapper.text()).toContain('主数 22 联动根数 4')
-    expect(wrapper.findAll('.linked').some((tile) => tile.text().includes('4'))).toBe(true)
+    expect(wrapper.text()).toContain('建造者')
+    expect(wrapper.text()).toContain('命运数 22')
+    expect(wrapper.text()).toContain('根数 4')
+    expect(wrapper.findAll('.active').some((tile) => tile.text().includes('4'))).toBe(true)
+  })
+
+  it('切换查看生日数、天赋数和空缺数解读', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.find('input[type="date"]').setValue('1989-08-18')
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数')).trigger('click')
+
+    expect(wrapper.text()).toContain('Birthday Number 18')
+    expect(wrapper.text()).toContain('18 日：愿景实践者')
+    expect(wrapper.findAll('.day-button').map((button) => button.text())).toEqual(['9', '18', '27'])
+    expect(wrapper.findAll('.day-button').some((button) => button.classes().includes('active') && button.text() === '18')).toBe(true)
+
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('天赋数')).trigger('click')
+
+    expect(wrapper.text()).toContain('Talent Number 8')
+    expect(wrapper.text()).toContain('天赋数 8 继承')
+
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('空缺数')).trigger('click')
+
+    expect(wrapper.text()).toContain('Missing Number 2')
+    expect(wrapper.text()).toContain('空缺数 2 继承')
+    expect(wrapper.findAll('.linked').some((tile) => tile.text().includes('7'))).toBe(true)
+  })
+
+  it('生日数可以切换查看不同具体日期解读', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.find('input[type="date"]').setValue('1989-08-18')
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数')).trigger('click')
+    await wrapper.findAll('.tile').find((button) => button.text().includes('5')).trigger('click')
+
+    expect(wrapper.findAll('.day-button').map((button) => button.text())).toEqual(['5', '14', '23'])
+
+    await wrapper.findAll('.day-button').find((button) => button.text() === '23').trigger('click')
+
+    expect(wrapper.text()).toContain('Birthday Number 23')
+    expect(wrapper.text()).toContain('23 日：表达建造者')
+    expect(wrapper.findAll('.day-button').some((button) => button.classes().includes('active') && button.text() === '23')).toBe(true)
+    expect(wrapper.findAll('.active').some((tile) => tile.text().includes('5'))).toBe(true)
+  })
+
+  it('生日数日期按九宫格选中数字渐进披露', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数')).trigger('click')
+    await wrapper.findAll('.tile').find((button) => button.text().includes('2')).trigger('click')
+
+    expect(wrapper.findAll('.day-button').map((button) => button.text())).toEqual(['2', '22', '29'])
+    expect(wrapper.text()).not.toContain('31 日：系统成就者')
+
+    await wrapper.findAll('.tile').find((button) => button.text().includes('3')).trigger('click')
+
+    expect(wrapper.findAll('.day-button').map((button) => button.text())).toEqual(['3', '12', '21', '30'])
+  })
+
+  it('切回生日数时按计算结果重新定位出生日', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.find('input[type="date"]').setValue('1989-08-02')
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数')).trigger('click')
+    await wrapper.findAll('.day-button').find((button) => button.text() === '22').trigger('click')
+
+    expect(wrapper.findAll('.day-button').some((button) => button.classes().includes('active') && button.text() === '22')).toBe(true)
+
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('天赋数')).trigger('click')
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数')).trigger('click')
+
+    expect(wrapper.text()).toContain('Birthday Number 2')
+    expect(wrapper.findAll('.day-button').some((button) => button.classes().includes('active') && button.text() === '2')).toBe(true)
+  })
+
+  it('规则弹层随解读类型切换内容', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('空缺数')).trigger('click')
+    await wrapper.find('.rules-toggle').trigger('click')
+
+    expect(wrapper.text()).toContain('空缺数怎么算')
+    expect(wrapper.text()).toContain('完整生日数字中没有出现的 1-9')
   })
 })

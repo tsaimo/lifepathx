@@ -1,8 +1,8 @@
 <script setup>
-import readings from './lifePathReadings.json'
 import NumberTile from './NumberTile.vue'
 
 defineProps({
+  readings: { type: Array, required: true },
   selected: { type: Number, required: true },
   linkedNumbers: { type: Array, default: () => [] },
 })
@@ -28,6 +28,6 @@ defineEmits(['select'])
 .grid {
   display: grid;
   gap: clamp(8px, 2vw, 12px);
-  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 </style>

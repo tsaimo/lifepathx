@@ -1,14 +1,16 @@
 <script setup>
 defineProps({
   reading: { type: Object, required: true },
+  type: { type: Object, required: true },
 })
 </script>
 
 <template>
   <!-- 解读面板：只负责阅读体验。 -->
   <article class="panel">
-    <p class="eyebrow">Life Path {{ reading.number }}</p>
+    <p class="eyebrow">{{ type.eyebrow }} {{ reading.number }}</p>
     <h2>{{ reading.title }}</h2>
+    <p class="description">{{ type.description }}</p>
     <p class="summary">{{ reading.summary }}</p>
 
     <section>
@@ -58,7 +60,13 @@ h2 {
   color: #41505b;
   font-size: clamp(16px, 2vw, 18px);
   line-height: 1.75;
-  margin: clamp(18px, 3vw, 24px) 0;
+  margin: 12px 0 clamp(18px, 3vw, 24px);
+}
+
+.description {
+  color: #65727b;
+  line-height: 1.6;
+  margin-top: 10px;
 }
 
 section + section {
