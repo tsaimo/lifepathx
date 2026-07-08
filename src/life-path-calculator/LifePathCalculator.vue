@@ -97,8 +97,8 @@ watch(result, (value) => emit('calculated', value), { immediate: true })
 <style scoped>
 .calculator {
   display: grid;
-  gap: 10px;
-  margin-bottom: clamp(14px, 3vw, 20px);
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 label {
@@ -107,40 +107,43 @@ label {
 }
 
 .date-field {
-  background: #fff7e9;
-  border: 2px solid #9a5b35;
-  border-radius: 8px;
-  box-shadow: 0 12px 34px rgb(154 91 53 / 0.18);
-  padding: 12px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: 14px;
+  box-shadow: var(--shadow-surface);
+  padding: 10px;
 }
 
 .date-field.incomplete {
-  outline: 3px solid rgb(154 91 53 / 0.14);
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
 span,
 small {
-  color: #9a5b35;
+  color: var(--color-text-medium);
   font-size: 13px;
   font-weight: 800;
 }
 
 input {
-  border: 1px solid #c58a63;
-  border-radius: 8px;
-  color: #20272d;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-stroke);
+  border-radius: 6px;
+  color: var(--color-text-high);
   font: inherit;
-  min-height: 46px;
-  padding: 11px 12px;
+  min-height: 40px;
+  padding: 8px 10px;
   width: 100%;
 }
 
 .result {
-  border: 1px solid #dfd5c5;
-  border-radius: 8px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-stroke);
+  border-radius: 14px;
+  box-shadow: var(--shadow-surface);
   display: grid;
   gap: 4px;
-  padding: 12px;
+  padding: 10px;
 }
 
 .result-list {
@@ -156,7 +159,7 @@ input {
 }
 
 b {
-  color: #9a5b35;
+  color: var(--color-text-high);
 }
 
 .rules {
@@ -166,34 +169,35 @@ b {
 
 .rules-toggle {
   align-items: center;
-  background: #fffdf8;
-  border: 1px solid #dfd5c5;
-  border-radius: 8px;
-  color: #9a5b35;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-stroke);
+  border-radius: 6px;
+  color: var(--color-text-high);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
   font-size: 14px;
   font-weight: 800;
   justify-content: center;
-  min-height: 42px;
-  padding: 9px 12px;
+  min-height: 38px;
+  padding: 8px 12px;
   width: 100%;
 }
 
 .rules-toggle:hover {
-  border-color: #9a5b35;
+  border-color: var(--color-primary-hover);
+  color: var(--color-text-high);
 }
 
 .rules-toggle:disabled {
-  background: #f1eadf;
-  color: #8b948f;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-low);
   cursor: not-allowed;
 }
 
 .rules-overlay {
   align-items: center;
-  background: rgb(32 39 45 / 0.55);
+  background: rgba(18, 18, 18, 0.72);
   display: grid;
   inset: 0;
   justify-items: center;
@@ -203,17 +207,17 @@ b {
 }
 
 .rules-panel {
-  background: #fffdf8;
-  border: 1px solid #dfd5c5;
-  border-radius: 8px;
-  box-shadow: 0 18px 44px rgb(32 39 45 / 0.24);
-  color: #20272d;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-stroke);
+  border-radius: 14px;
+  box-shadow: var(--shadow-surface);
+  color: var(--color-text-high);
   display: grid;
   gap: 16px;
   max-height: min(720px, 88vh);
   max-width: 620px;
   overflow: auto;
-  padding: clamp(18px, 4vw, 26px);
+  padding: 22px;
   width: min(100%, 620px);
 }
 
@@ -230,20 +234,20 @@ h3 {
 }
 
 h2 {
-  font-size: clamp(24px, 6vw, 34px);
+  font-size: 30px;
   line-height: 1.1;
 }
 
 h3 {
-  color: #9a5b35;
+  color: var(--color-text-high);
   font-size: 15px;
 }
 
 .rules-close {
-  background: #20272d;
+  background: var(--color-primary);
   border: 0;
-  border-radius: 8px;
-  color: #fffaf2;
+  border-radius: 6px;
+  color: var(--color-primary-contrast);
   cursor: pointer;
   flex: 0 0 auto;
   font: inherit;
@@ -254,18 +258,18 @@ h3 {
 }
 
 .rule-block {
-  border-left: 3px solid #9a5b35;
+  border-left: 3px solid var(--color-accent);
   display: grid;
   gap: 6px;
   padding-left: 12px;
 }
 
 .empty {
-  color: #65727b;
+  color: var(--color-text-medium);
 }
 
 strong {
-  font-size: clamp(34px, 8vw, 42px);
+  font-size: 36px;
   line-height: 1;
 }
 

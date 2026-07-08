@@ -27,35 +27,35 @@ defineEmits(['select'])
 <style scoped>
 .tabs {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .tab {
-  background: #fffdf8;
-  border: 1px solid #dfd5c5;
-  border-radius: 8px;
-  color: #4c5a63;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-stroke);
+  border-radius: 6px;
+  color: var(--color-text-medium);
   cursor: pointer;
   font: inherit;
   font-size: 14px;
   font-weight: 800;
-  min-height: 40px;
-  padding: 8px 10px;
+  min-height: 38px;
+  padding: 7px 10px;
 }
 
 .tab:hover,
 .active {
-  background: #20272d;
-  border-color: #20272d;
-  color: #fffaf2;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
 .tab:disabled {
-  background: #f1eadf;
-  border-color: #dfd5c5;
-  color: #8b948f;
+  background: var(--color-bg-elevated);
+  border-color: var(--color-stroke);
+  color: var(--color-text-low);
   cursor: not-allowed;
 }
 </style>

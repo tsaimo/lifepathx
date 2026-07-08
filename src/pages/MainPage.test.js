@@ -7,6 +7,19 @@ function findNumberTile(wrapper, number) {
 }
 
 describe('MainPage', () => {
+  it('可以在浅色和深色主题之间切换', async () => {
+    const wrapper = mount(MainPage)
+    const themeToggle = wrapper.find('.theme-toggle')
+
+    expect(wrapper.find('.main-page').classes()).not.toContain('dark')
+    expect(themeToggle.text()).toBe('深色')
+
+    await themeToggle.trigger('click')
+
+    expect(wrapper.find('.main-page').classes()).toContain('dark')
+    expect(themeToggle.text()).toBe('浅色')
+  })
+
   it('点击数字后展示对应中文解读', async () => {
     const wrapper = mount(MainPage)
 

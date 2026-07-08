@@ -82,9 +82,12 @@ watch(
 
 <style scoped>
 .panel {
-  border-left: 1px solid #dfd5c5;
-  padding-left: clamp(20px, 3vw, 32px);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-stroke);
+  border-radius: 14px;
+  box-shadow: var(--shadow-surface);
   min-width: 0;
+  padding: 22px;
 }
 
 .eyebrow,
@@ -95,32 +98,32 @@ p {
 }
 
 .eyebrow {
-  color: #9a5b35;
+  color: var(--color-text-medium);
   font-size: 13px;
   font-weight: 700;
 }
 
 h2 {
-  font-size: clamp(34px, 7vw, 72px);
-  line-height: 0.95;
-  margin-top: 8px;
+  font-size: clamp(36px, 4vw, 56px);
+  line-height: 1;
+  margin-top: 6px;
 }
 
 .summary {
-  color: #41505b;
-  font-size: clamp(16px, 2vw, 18px);
-  line-height: 1.75;
-  margin: 12px 0 clamp(18px, 3vw, 24px);
+  color: var(--color-text-high);
+  font-size: 17px;
+  line-height: 1.65;
+  margin: 10px 0 16px;
 }
 
 .description {
-  color: #65727b;
+  color: var(--color-text-medium);
   line-height: 1.6;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 section + section {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .section-heading {
@@ -136,7 +139,7 @@ h3 {
 }
 
 section p {
-  color: #4c5a63;
+  color: var(--color-text-medium);
   line-height: 1.65;
 }
 
@@ -146,10 +149,10 @@ section p {
 }
 
 .advice-tab {
-  background: #fffdf8;
-  border: 1px solid #dfd5c5;
-  border-radius: 8px;
-  color: #4c5a63;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-stroke);
+  border-radius: 6px;
+  color: var(--color-text-medium);
   cursor: pointer;
   font: inherit;
   font-size: 12px;
@@ -159,20 +162,20 @@ section p {
 
 .advice-tab:hover,
 .advice-tab.active {
-  background: #20272d;
-  border-color: #20272d;
-  color: #fffaf2;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
 .advice-tab:disabled {
-  background: #f1eadf;
-  border-color: #dfd5c5;
-  color: #8b948f;
+  background: var(--color-bg-elevated);
+  border-color: var(--color-stroke);
+  color: var(--color-text-low);
   cursor: not-allowed;
 }
 
 .advice-list {
-  color: #4c5a63;
+  color: var(--color-text-medium);
   line-height: 1.65;
   margin: 0;
   padding-left: 22px;
@@ -184,9 +187,7 @@ section p {
 
 @media (max-width: 900px) {
   .panel {
-    border-left: 0;
-    border-top: 1px solid #dfd5c5;
-    padding: 24px 0 0;
+    padding: 18px;
   }
 }
 </style>

@@ -10,6 +10,7 @@ const selected = ref(1)
 const selectedBirthdayDay = ref(1)
 const calculated = ref(null)
 const activeTypeId = ref('destiny')
+const isDarkTheme = ref(false)
 const isBirthDateReady = computed(() => Boolean(calculated.value))
 const activeType = computed(() => findReadingType(activeTypeId.value))
 const activeReadings = computed(() => [...activeType.value.readings, ...(activeType.value.extraReadings ?? [])])
@@ -294,10 +295,15 @@ function selectNumber(reading) {
 
 <template>
   <!-- main 页面：生命灵数解读入口。 -->
-  <main class="main-page">
+  <main class="main-page" :class="{ dark: isDarkTheme }">
     <section class="intro">
-      <p>LifePathX</p>
-      <h1>生命灵数</h1>
+      <div>
+        <p>LifePathX</p>
+        <h1>生命灵数</h1>
+      </div>
+      <button class="theme-toggle" type="button" @click="isDarkTheme = !isDarkTheme">
+        {{ isDarkTheme ? '浅色' : '深色' }}
+      </button>
     </section>
 
     <section class="content">
@@ -359,20 +365,41 @@ function selectNumber(reading) {
 
 :global(body) {
   margin: 0;
-  background: #f6f1e8;
+  background: #f5f7fa;
 }
 
 .main-page {
-  min-height: 100vh;
-  max-width: 1180px;
+  --color-bg-base: #f5f7fa;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #f7f8fa;
+  --color-text-high: #1a1a1a;
+  --color-text-medium: #6b6b6b;
+  --color-text-low: #707070;
+  --color-stroke: rgba(26, 26, 26, 0.1);
+  --color-primary: #4f6f8f;
+  --color-primary-hover: #3a536b;
+  --color-accent: #4f6f8f;
+  --color-primary-contrast: #ffffff;
+  --shadow-surface: 0 12px 30px rgba(79, 111, 143, 0.08);
+
+  min-height: 100svh;
+  max-width: none;
   margin: 0 auto;
-  padding: clamp(20px, 5vw, 56px);
-  color: #20272d;
+  padding: 24px;
+  background: var(--color-bg-base);
+  color: var(--color-text-high);
   font-family: system-ui, sans-serif;
 }
 
 .intro {
-  margin-bottom: clamp(24px, 4vw, 40px);
+  align-items: end;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  max-width: 1360px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .intro p,
@@ -381,7 +408,7 @@ h1 {
 }
 
 .intro p {
-  color: #9a5b35;
+  color: var(--color-text-medium);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0;
@@ -389,15 +416,31 @@ h1 {
 }
 
 h1 {
-  font-size: clamp(40px, 10vw, 104px);
-  line-height: 0.92;
+  font-size: clamp(40px, 5vw, 72px);
+  line-height: 1;
+}
+
+.theme-toggle {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-stroke);
+  border-radius: 6px;
+  color: var(--color-text-high);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  min-height: 38px;
+  min-width: 72px;
 }
 
 .content {
+  background: var(--color-bg-base);
   display: grid;
-  gap: clamp(24px, 4vw, 44px);
-  grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+  gap: 24px;
+  grid-template-columns: 430px minmax(0, 1fr);
   align-items: start;
+  max-width: 1360px;
+  min-height: calc(100svh - 136px);
+  margin: 0 auto;
 }
 
 .side {
@@ -408,59 +451,75 @@ h1 {
   display: grid;
   gap: 6px;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .extra-numbers {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .day-button,
 .extra-number-button {
-  background: #fffdf8;
-  border: 1px solid #dfd5c5;
-  border-radius: 8px;
-  color: #4c5a63;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-stroke);
+  border-radius: 6px;
+  color: var(--color-text-medium);
   cursor: pointer;
   font: inherit;
   font-size: 13px;
   font-weight: 800;
-  min-height: 34px;
+  min-height: 32px;
 }
 
 .extra-number-button {
   min-width: 58px;
-  padding: 8px 14px;
+  padding: 7px 14px;
 }
 
 .day-button:hover,
 .day-button.active,
 .extra-number-button:hover,
 .extra-number-button.active {
-  background: #9a5b35;
-  border-color: #9a5b35;
-  color: #fffaf2;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
 .extra-number-button.linked {
-  border-color: #9a5b35;
-  box-shadow: inset 0 0 0 2px #9a5b35;
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
 .day-button:disabled,
 .extra-number-button:disabled {
-  background: #f1eadf;
-  border-color: #dfd5c5;
-  color: #8b948f;
+  background: var(--color-bg-elevated);
+  border-color: var(--color-stroke);
+  color: var(--color-text-low);
   cursor: not-allowed;
+}
+
+.dark {
+  --color-bg-base: #121212;
+  --color-bg-surface: #1e1e1e;
+  --color-bg-elevated: #242424;
+  --color-text-high: #e8e8e8;
+  --color-text-medium: #a0a0a0;
+  --color-text-low: #8a8a8a;
+  --color-stroke: rgba(255, 255, 255, 0.2);
+  --color-primary: #4f6f8f;
+  --color-primary-hover: #3a536b;
+  --color-accent: #54708c;
+  --color-primary-contrast: #ffffff;
+  --shadow-surface: none;
 }
 
 @media (max-width: 900px) {
   .content {
     grid-template-columns: 1fr;
+    min-height: 0;
   }
 }
 
