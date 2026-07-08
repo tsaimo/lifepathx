@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 const props = defineProps({
   reading: { type: Object, required: true },
   type: { type: Object, required: true },
+  disabled: { type: Boolean, default: false },
 })
 
 const activeAdviceMode = ref('self')
@@ -65,6 +66,7 @@ watch(
             class="advice-tab"
             :class="{ active: activeAdviceMode === mode.id }"
             type="button"
+            :disabled="disabled"
             @click="activeAdviceMode = mode.id"
           >
             {{ mode.label }}
@@ -160,6 +162,13 @@ section p {
   background: #20272d;
   border-color: #20272d;
   color: #fffaf2;
+}
+
+.advice-tab:disabled {
+  background: #f1eadf;
+  border-color: #dfd5c5;
+  color: #8b948f;
+  cursor: not-allowed;
 }
 
 .advice-list {

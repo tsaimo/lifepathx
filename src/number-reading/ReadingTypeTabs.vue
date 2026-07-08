@@ -2,6 +2,7 @@
 defineProps({
   types: { type: Array, required: true },
   activeTypeId: { type: String, required: true },
+  disabled: { type: Boolean, default: false },
 })
 
 defineEmits(['select'])
@@ -15,6 +16,7 @@ defineEmits(['select'])
       class="tab"
       :class="{ active: activeTypeId === type.id }"
       type="button"
+      :disabled="disabled"
       @click="$emit('select', type.id)"
     >
       {{ type.label }}
@@ -48,5 +50,12 @@ defineEmits(['select'])
   background: #20272d;
   border-color: #20272d;
   color: #fffaf2;
+}
+
+.tab:disabled {
+  background: #f1eadf;
+  border-color: #dfd5c5;
+  color: #8b948f;
+  cursor: not-allowed;
 }
 </style>

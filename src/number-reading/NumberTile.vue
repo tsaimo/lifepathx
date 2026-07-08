@@ -3,6 +3,7 @@ defineProps({
   reading: { type: Object, required: true },
   active: { type: Boolean, default: false },
   linked: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
 })
 
 defineEmits(['select'])
@@ -10,7 +11,7 @@ defineEmits(['select'])
 
 <template>
   <!-- 数字卡片：只负责展示与点击。 -->
-  <button class="tile" :class="{ active, linked }" type="button" @click="$emit('select', reading)">
+  <button class="tile" :class="{ active, linked }" type="button" :disabled="disabled" @click="$emit('select', reading)">
     <span>{{ reading.number }}</span>
   </button>
 </template>
@@ -37,6 +38,17 @@ defineEmits(['select'])
   background: #20272d;
   color: #fffaf2;
   transform: translateY(-2px);
+}
+
+.tile:disabled {
+  background: #f1eadf;
+  color: #8b948f;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.tile:disabled:hover {
+  border-color: #e7decf;
 }
 
 .linked {

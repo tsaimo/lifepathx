@@ -75,9 +75,13 @@ describe('LifePathCalculator', () => {
     })
     const toggle = wrapper.find('.rules-toggle')
 
+    expect(toggle.attributes('disabled')).toBeDefined()
+    await wrapper.find('input[type="date"]').setValue('1989-08-18')
+
     expect(wrapper.find('.rules-overlay').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('命运数 = 归约(月) + 归约(日) + 归约(年)')
     expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(toggle.attributes('disabled')).toBeUndefined()
 
     await toggle.trigger('click')
 

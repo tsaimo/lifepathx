@@ -25,14 +25,15 @@ watch(result, (value) => emit('calculated', value), { immediate: true })
 <template>
   <!-- 计算模块：输入生日后自动计算生命灵数。 -->
   <section class="calculator">
-    <label>
-      <span>出生日期</span>
+    <label class="date-field" :class="{ incomplete: !result }">
+      <span>先填写出生日期</span>
       <input
         v-model="birthDate"
         type="date"
         min="1900-01-01"
         max="9999-12-31"
         aria-label="出生日期"
+        autofocus
         @blur="normalizeBirthDate"
       />
     </label>
@@ -57,6 +58,7 @@ watch(result, (value) => emit('calculated', value), { immediate: true })
       <button
         class="rules-toggle"
         type="button"
+        :disabled="!result"
         :aria-expanded="showRules"
         aria-controls="life-path-rules"
         @click="showRules = !showRules"
@@ -104,6 +106,18 @@ label {
   gap: 8px;
 }
 
+.date-field {
+  background: #fff7e9;
+  border: 2px solid #9a5b35;
+  border-radius: 8px;
+  box-shadow: 0 12px 34px rgb(154 91 53 / 0.18);
+  padding: 12px;
+}
+
+.date-field.incomplete {
+  outline: 3px solid rgb(154 91 53 / 0.14);
+}
+
 span,
 small {
   color: #9a5b35;
@@ -112,7 +126,7 @@ small {
 }
 
 input {
-  border: 1px solid #dfd5c5;
+  border: 1px solid #c58a63;
   border-radius: 8px;
   color: #20272d;
   font: inherit;
@@ -169,6 +183,12 @@ b {
 
 .rules-toggle:hover {
   border-color: #9a5b35;
+}
+
+.rules-toggle:disabled {
+  background: #f1eadf;
+  color: #8b948f;
+  cursor: not-allowed;
 }
 
 .rules-overlay {

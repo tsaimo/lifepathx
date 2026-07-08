@@ -10,6 +10,7 @@ const selected = ref(1)
 const selectedBirthdayDay = ref(1)
 const calculated = ref(null)
 const activeTypeId = ref('destiny')
+const isBirthDateReady = computed(() => Boolean(calculated.value))
 const activeType = computed(() => findReadingType(activeTypeId.value))
 const visibleBirthdayDayReadings = computed(() => {
   if (activeTypeId.value !== 'birthday') {
@@ -135,11 +136,17 @@ function selectNumber(reading) {
     <section class="content">
       <div class="side">
         <LifePathCalculator :active-type="activeType" @calculated="applyCalculation" />
-        <ReadingTypeTabs :types="readingTypes" :active-type-id="activeTypeId" @select="selectType" />
+        <ReadingTypeTabs
+          :types="readingTypes"
+          :active-type-id="activeTypeId"
+          :disabled="!isBirthDateReady"
+          @select="selectType"
+        />
         <NumberGrid
           :readings="activeType.readings"
           :selected="selected"
           :linked-numbers="linkedNumbers"
+          :disabled="!isBirthDateReady"
           @select="selectNumber"
         />
         <div v-if="activeTypeId === 'birthday'" class="birthday-days" aria-label="出生日解读">
@@ -149,13 +156,14 @@ function selectNumber(reading) {
             class="day-button"
             :class="{ active: selectedBirthdayDay === reading.number }"
             type="button"
+            :disabled="!isBirthDateReady"
             @click="selectBirthdayDay(reading.number)"
           >
             {{ reading.number }}
           </button>
         </div>
       </div>
-      <ReadingPanel :reading="currentReading" :type="activeType" />
+      <ReadingPanel :reading="currentReading" :type="activeType" :disabled="!isBirthDateReady" />
     </section>
   </main>
 </template>
@@ -236,6 +244,13 @@ h1 {
   background: #9a5b35;
   border-color: #9a5b35;
   color: #fffaf2;
+}
+
+.day-button:disabled {
+  background: #f1eadf;
+  border-color: #dfd5c5;
+  color: #8b948f;
+  cursor: not-allowed;
 }
 
 @media (max-width: 900px) {

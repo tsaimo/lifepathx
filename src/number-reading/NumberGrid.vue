@@ -5,6 +5,7 @@ defineProps({
   readings: { type: Array, required: true },
   selected: { type: Number, required: true },
   linkedNumbers: { type: Array, default: () => [] },
+  disabled: { type: Boolean, default: false },
 })
 
 defineEmits(['select'])
@@ -19,6 +20,7 @@ defineEmits(['select'])
       :reading="reading"
       :active="selected === reading.number"
       :linked="linkedNumbers.includes(reading.number) && selected !== reading.number"
+      :disabled="disabled"
       @select="$emit('select', reading)"
     />
   </div>

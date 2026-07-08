@@ -14,10 +14,43 @@ describe('MainPage', () => {
     expect(wrapper.findAll('.tile').map((button) => button.text())).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
     expect(wrapper.text()).toContain('开创者')
 
+    await wrapper.find('input[type="date"]').setValue('1989-08-18')
     await findNumberTile(wrapper, 7).trigger('click')
 
     expect(wrapper.text()).toContain('探求者')
     expect(wrapper.text()).toContain('追问本质')
+  })
+
+  it('生日填写完成前禁用其它页面交互，填写后恢复', async () => {
+    const wrapper = mount(MainPage)
+    const birthdayTab = wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数'))
+    const relationshipAdviceTab = wrapper.findAll('.advice-tab').find((button) => button.text().includes('与对方相处'))
+
+    expect(wrapper.find('.date-field').classes()).toContain('incomplete')
+    expect(wrapper.find('.rules-toggle').attributes('disabled')).toBeDefined()
+    expect(birthdayTab.attributes('disabled')).toBeDefined()
+    expect(findNumberTile(wrapper, 7).attributes('disabled')).toBeDefined()
+    expect(relationshipAdviceTab.attributes('disabled')).toBeDefined()
+
+    await birthdayTab.trigger('click')
+    await findNumberTile(wrapper, 7).trigger('click')
+    await relationshipAdviceTab.trigger('click')
+
+    expect(wrapper.text()).toContain('Destiny Number 1')
+    expect(wrapper.text()).toContain('先温柔地承认自己的独立需求')
+
+    await wrapper.find('input[type="date"]').setValue('1989-08-20')
+
+    expect(wrapper.find('.date-field').classes()).not.toContain('incomplete')
+    expect(wrapper.find('.rules-toggle').attributes('disabled')).toBeUndefined()
+    expect(birthdayTab.attributes('disabled')).toBeUndefined()
+    expect(findNumberTile(wrapper, 7).attributes('disabled')).toBeUndefined()
+    expect(relationshipAdviceTab.attributes('disabled')).toBeUndefined()
+
+    await birthdayTab.trigger('click')
+    await findNumberTile(wrapper, 7).trigger('click')
+
+    expect(wrapper.text()).toContain('Birthday Number 7')
   })
 
   it('输入生日后自动计算并联动解读', async () => {
@@ -75,6 +108,7 @@ describe('MainPage', () => {
   it('生日数日期按九宫格选中数字渐进披露', async () => {
     const wrapper = mount(MainPage)
 
+    await wrapper.find('input[type="date"]').setValue('1989-08-18')
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数')).trigger('click')
     await findNumberTile(wrapper, 2).trigger('click')
 
@@ -105,6 +139,7 @@ describe('MainPage', () => {
   it('规则弹层随解读类型切换内容', async () => {
     const wrapper = mount(MainPage)
 
+    await wrapper.find('input[type="date"]').setValue('1989-08-18')
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('空缺数')).trigger('click')
     await wrapper.find('.rules-toggle').trigger('click')
 
@@ -115,6 +150,7 @@ describe('MainPage', () => {
   it('空缺数解读展示缺失带来的补足方向', async () => {
     const wrapper = mount(MainPage)
 
+    await wrapper.find('input[type="date"]').setValue('1989-08-18')
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('空缺数')).trigger('click')
 
     expect(wrapper.text()).toContain('需要补足')
@@ -126,6 +162,7 @@ describe('MainPage', () => {
   it('建议可以在给自己和与对方相处之间切换', async () => {
     const wrapper = mount(MainPage)
 
+    await wrapper.find('input[type="date"]').setValue('1989-08-20')
     expect(wrapper.text()).toContain('先温柔地承认自己的独立需求')
 
     await wrapper.findAll('.advice-tab').find((button) => button.text().includes('与对方相处')).trigger('click')
