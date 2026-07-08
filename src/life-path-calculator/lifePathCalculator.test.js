@@ -39,12 +39,12 @@ describe('lifePathCalculator', () => {
     expect(calculateNumerologyProfile('10000-08-18')).toBeNull()
   })
 
-  it('把越界生日修正为当前日期 22 年前的默认值', () => {
+  it('把越界生日修正为当前日期 18 年前的默认值', () => {
     const referenceDate = new Date(2026, 6, 8)
 
-    expect(getDefaultBirthDate(referenceDate)).toBe('2004-07-08')
-    expect(normalizeBirthDateInput('1222-08-18', referenceDate)).toBe('2004-07-08')
-    expect(normalizeBirthDateInput('10000-08-18', referenceDate)).toBe('2004-07-08')
+    expect(getDefaultBirthDate(referenceDate)).toBe('2008-07-08')
+    expect(normalizeBirthDateInput('1222-08-18', referenceDate)).toBe('2008-07-08')
+    expect(normalizeBirthDateInput('10000-08-18', referenceDate)).toBe('2008-07-08')
     expect(normalizeBirthDateInput('1989-08-18', referenceDate)).toBe('1989-08-18')
   })
 

@@ -1,13 +1,13 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { calculateNumerologyProfile, normalizeBirthDateInput } from './lifePathCalculator'
+import { calculateNumerologyProfile, getDefaultBirthDate, normalizeBirthDateInput } from './lifePathCalculator'
 
 defineProps({
   activeType: { type: Object, required: true },
 })
 
 const emit = defineEmits(['calculated'])
-const birthDate = ref('')
+const birthDate = ref(getDefaultBirthDate())
 const showRules = ref(false)
 const result = computed(() => calculateNumerologyProfile(birthDate.value))
 

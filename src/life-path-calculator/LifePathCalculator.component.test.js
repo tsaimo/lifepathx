@@ -18,6 +18,17 @@ describe('LifePathCalculator', () => {
     expect(input.attributes('max')).toBe('9999-12-31')
   })
 
+  it('进入页面默认填写 18 年前的今天', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 8))
+    const wrapper = mount(LifePathCalculator, {
+      props: { activeType: readingTypes[0] },
+    })
+
+    expect(wrapper.find('input[type="date"]').element.value).toBe('2008-07-08')
+    expect(wrapper.text()).toContain('命运数')
+  })
+
   it('输入越界生日后自动回填默认生日并计算', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 6, 8))
@@ -29,7 +40,7 @@ describe('LifePathCalculator', () => {
     await input.setValue('1222-08-18')
     await input.trigger('blur')
 
-    expect(input.element.value).toBe('2004-07-08')
+    expect(input.element.value).toBe('2008-07-08')
     expect(wrapper.text()).toContain('命运数')
   })
 
@@ -43,7 +54,7 @@ describe('LifePathCalculator', () => {
 
     await input.setValue('1222-08-18')
     await input.trigger('blur')
-    expect(input.element.value).toBe('2004-07-08')
+    expect(input.element.value).toBe('2008-07-08')
 
     await input.setValue('1989-08-18')
     await input.trigger('blur')
@@ -66,7 +77,7 @@ describe('LifePathCalculator', () => {
 
     await input.trigger('blur')
 
-    expect(input.element.value).toBe('2004-07-08')
+    expect(input.element.value).toBe('2008-07-08')
   })
 
   it('通过覆盖层展开和收起计算规则', async () => {
@@ -74,9 +85,6 @@ describe('LifePathCalculator', () => {
       props: { activeType: readingTypes[0] },
     })
     const toggle = wrapper.find('.rules-toggle')
-
-    expect(toggle.attributes('disabled')).toBeDefined()
-    await wrapper.find('input[type="date"]').setValue('1989-08-18')
 
     expect(wrapper.find('.rules-overlay').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('命运数 = 归约(月) + 归约(日) + 归约(年)')

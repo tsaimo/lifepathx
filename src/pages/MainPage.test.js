@@ -25,7 +25,6 @@ describe('MainPage', () => {
 
     expect(wrapper.findAll('.tile')).toHaveLength(9)
     expect(wrapper.findAll('.tile').map((button) => button.text())).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
-    expect(wrapper.text()).toContain('开创者')
 
     await wrapper.find('input[type="date"]').setValue('1989-08-18')
     await findNumberTile(wrapper, 7).trigger('click')
@@ -34,26 +33,12 @@ describe('MainPage', () => {
     expect(wrapper.text()).toContain('追问本质')
   })
 
-  it('生日填写完成前禁用其它页面交互，填写后恢复', async () => {
+  it('默认生日填写完成后页面交互可用', async () => {
     const wrapper = mount(MainPage)
+    await wrapper.vm.$nextTick()
+
     const birthdayTab = wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数'))
     const relationshipAdviceTab = wrapper.findAll('.advice-tab').find((button) => button.text().includes('与对方相处'))
-
-    expect(wrapper.find('.date-field').classes()).toContain('incomplete')
-    expect(wrapper.find('.rules-toggle').attributes('disabled')).toBeDefined()
-    expect(birthdayTab.attributes('disabled')).toBeDefined()
-    expect(findNumberTile(wrapper, 7).attributes('disabled')).toBeDefined()
-    expect(wrapper.findAll('.extra-number-button').find((button) => button.text() === '22').attributes('disabled')).toBeDefined()
-    expect(relationshipAdviceTab.attributes('disabled')).toBeDefined()
-
-    await birthdayTab.trigger('click')
-    await findNumberTile(wrapper, 7).trigger('click')
-    await relationshipAdviceTab.trigger('click')
-
-    expect(wrapper.text()).toContain('Destiny Number 1')
-    expect(wrapper.text()).toContain('先温柔地承认自己的独立需求')
-
-    await wrapper.find('input[type="date"]').setValue('1989-08-20')
 
     expect(wrapper.find('.date-field').classes()).not.toContain('incomplete')
     expect(wrapper.find('.rules-toggle').attributes('disabled')).toBeUndefined()
@@ -62,6 +47,7 @@ describe('MainPage', () => {
     expect(wrapper.findAll('.extra-number-button').find((button) => button.text() === '22').attributes('disabled')).toBeUndefined()
     expect(relationshipAdviceTab.attributes('disabled')).toBeUndefined()
 
+    await wrapper.find('input[type="date"]').setValue('1989-08-20')
     await birthdayTab.trigger('click')
     await findNumberTile(wrapper, 7).trigger('click')
 

@@ -53,7 +53,7 @@ function formatDatePart(value) {
 }
 
 export function getDefaultBirthDate(referenceDate = new Date()) {
-  const year = referenceDate.getFullYear() - 22
+  const year = referenceDate.getFullYear() - 18
   const month = formatDatePart(referenceDate.getMonth() + 1)
   const day = formatDatePart(referenceDate.getDate())
 
