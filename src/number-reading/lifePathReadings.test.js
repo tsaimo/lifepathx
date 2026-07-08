@@ -83,7 +83,7 @@ describe('lifePathReadings', () => {
 
     expect(destinyType.extraReadings.map((reading) => reading.number)).toEqual([11, 22, 33])
     expect(missingType.extraReadings.map((reading) => reading.number)).toEqual([0])
-    expect(missingType.extraReadings[0].summary).toContain('空缺数 0')
+    expect(missingType.extraReadings[0].summary).toContain('缺少一点‘留白’的智慧')
     expect(missingType.rules.blocks[0].lines.join('')).toContain('0-9')
   })
 
@@ -118,9 +118,9 @@ describe('lifePathReadings', () => {
       challenges: '容易卡住',
     })
     expect(missingOne.title).toContain('缺少 1')
-    expect(missingOne.summary).toContain('不是优势')
-    expect(missingOne.summary).toContain('需要后天补课')
-    expect(missingOne.strengths.join('')).toContain('缺少')
-    expect(missingOne.advice.self.join('')).toContain('不是给自己扣分')
+    expect(missingOne.summary).toContain('不是缺陷')
+    expect(missingOne.summary).toContain('需要后天刻意练习')
+    expect(missingOne.strengths.join('')).toContain('等待')
+    expect(missingOne.advice.self.join('')).toContain('而非一个短板')
   })
 })

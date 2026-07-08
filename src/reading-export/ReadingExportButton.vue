@@ -2,12 +2,11 @@
 import { createReadingExportPayload, exportReadingPayload } from './readingExport'
 
 const props = defineProps({
-  readingTypes: { type: Array, required: true },
   currentReadings: { type: Object, required: true },
 })
 
 function exportCurrentReadings() {
-  exportReadingPayload(createReadingExportPayload(props.readingTypes, props.currentReadings), 'lifepathx-readings')
+  exportReadingPayload(createReadingExportPayload(props.currentReadings), 'lifepathx-readings')
 }
 </script>
 

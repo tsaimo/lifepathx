@@ -25,7 +25,6 @@ const isBirthDateReady = computed(() => Boolean(calculated.value))
 const activeType = computed(() => findReadingType(activeTypeId.value))
 const activeReadings = computed(() => [...activeType.value.readings, ...(activeType.value.extraReadings ?? [])])
 const visibleExtraReadings = computed(() => activeType.value.extraReadings ?? [])
-const gridReadings = computed(() => readingTypes[0].readings)
 const gridPositions = {
   1: { x: 0, y: 0 },
   2: { x: 1, y: 0 },
@@ -389,7 +388,7 @@ function closeImportDialog() {
           />
         </div>
         <div class="primary-actions">
-          <ReadingExportButton :reading-types="readingTypes" :current-readings="currentReadings" />
+          <ReadingExportButton :current-readings="currentReadings" />
           <button class="top-action import-action" type="button" @click="openImportDialog">导入 JSON</button>
           <button class="top-action theme-toggle" type="button" @click="isDarkTheme = !isDarkTheme">
             {{ isDarkTheme ? '浅色' : '深色' }}
@@ -465,29 +464,7 @@ function closeImportDialog() {
 </template>
 
 <style scoped>
-:global(*) {
-  box-sizing: border-box;
-}
-
-:global(body) {
-  margin: 0;
-  background: #f5f7fa;
-}
-
 .main-page {
-  --color-bg-base: #f5f7fa;
-  --color-bg-surface: #ffffff;
-  --color-bg-elevated: #f7f8fa;
-  --color-text-high: #1a1a1a;
-  --color-text-medium: #6b6b6b;
-  --color-text-low: #707070;
-  --color-stroke: rgba(26, 26, 26, 0.1);
-  --color-primary: #4f6f8f;
-  --color-primary-hover: #3a536b;
-  --color-accent: #4f6f8f;
-  --color-primary-contrast: #ffffff;
-  --shadow-surface: 0 12px 30px rgba(79, 111, 143, 0.08);
-
   min-height: 100svh;
   max-width: none;
   margin: 0 auto;
@@ -635,21 +612,6 @@ h1 {
   border-color: var(--color-stroke);
   color: var(--color-text-low);
   cursor: not-allowed;
-}
-
-.dark {
-  --color-bg-base: #121212;
-  --color-bg-surface: #1e1e1e;
-  --color-bg-elevated: #242424;
-  --color-text-high: #e8e8e8;
-  --color-text-medium: #a0a0a0;
-  --color-text-low: #8a8a8a;
-  --color-stroke: rgba(255, 255, 255, 0.2);
-  --color-primary: #4f6f8f;
-  --color-primary-hover: #3a536b;
-  --color-accent: #54708c;
-  --color-primary-contrast: #ffffff;
-  --shadow-surface: none;
 }
 
 @media (max-width: 900px) {

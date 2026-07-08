@@ -1,0 +1,18 @@
+/*
+ * Dark theme tokens.
+ * Applied when .main-page also has the .dark class from the theme toggle.
+ */
+.main-page.dark {
+  --color-bg-base: #121212;
+  --color-bg-surface: #1e1e1e;
+  --color-bg-elevated: #242424;
+  --color-text-high: #e8e8e8;
+  --color-text-medium: #a0a0a0;
+  --color-text-low: #8a8a8a;
+  --color-stroke: rgba(255, 255, 255, 0.2);
+  --color-primary: #4f6f8f;
+  --color-primary-hover: #3a536b;
+  --color-accent: #54708c;
+  --color-primary-contrast: #ffffff;
+  --shadow-surface: none;
+}

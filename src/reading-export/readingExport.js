@@ -8,11 +8,19 @@ export function createReadingPayload(currentReadings = {}) {
   }
 }
 
-export function createReadingExportPayload(readingTypes, currentReadings) {
+export function createReadingExportPayload(currentReadings) {
   return createReadingPayload(currentReadings)
 }
 
-export function exportReadingPayload(payload, filenamePrefix) {
+export function confirmReadingExport(message = '确认导出当前解读内容 JSON 文件吗？') {
+  return window.confirm(message)
+}
+
+export function exportReadingPayload(payload, filenamePrefix, confirmMessage) {
+  if (!confirmReadingExport(confirmMessage)) {
+    return false
+  }
+
   const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -21,6 +29,8 @@ export function exportReadingPayload(payload, filenamePrefix) {
   link.download = `${filenamePrefix}-${new Date().toISOString().slice(0, 10)}.json`
   link.click()
   URL.revokeObjectURL(url)
+
+  return true
 }
 
 export function collectAllReadingContents(readingTypes) {

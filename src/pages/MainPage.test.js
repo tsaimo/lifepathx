@@ -8,6 +8,7 @@ function findNumberTile(wrapper, number) {
 }
 
 async function getExportedPayload(wrapper, selector = '.export-action') {
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
   const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:readings')
   const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
   const createElement = document.createElement.bind(document)
@@ -39,6 +40,7 @@ async function getExportedPayload(wrapper, selector = '.export-action') {
 
   const payload = JSON.parse(await createObjectURL.mock.calls[0][0].text())
 
+  expect(confirm).toHaveBeenCalledTimes(1)
   expect(click).toHaveBeenCalledTimes(1)
   expect(revokeObjectURL).toHaveBeenCalledWith('blob:readings')
 
@@ -80,7 +82,7 @@ describe('MainPage', () => {
     await findNumberTile(wrapper, 7).trigger('click')
 
     expect(wrapper.text()).toContain('探求者')
-    expect(wrapper.text()).toContain('追问本质')
+    expect(wrapper.text()).toContain('追问的坚持')
   })
 
   it('默认生日填写完成后页面交互可用', async () => {
@@ -146,7 +148,7 @@ describe('MainPage', () => {
 
     expect(wrapper.text()).toContain('Connection Line 2-5-8')
     expect(wrapper.text()).toContain('情绪线（2-5-8）')
-    expect(wrapper.text()).toContain('感受、变化和现实压力之间的流动')
+    expect(wrapper.text()).toContain('感受、变化与现实压力')
     expect(wrapper.find('.line-layer').exists()).toBe(true)
     expect(wrapper.findAll('.connection-line').map((line) => line.attributes('points'))).toEqual([
       '1.5,0.5 1.5,1.5 1.5,2.5',
@@ -187,13 +189,13 @@ describe('MainPage', () => {
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('天赋数')).trigger('click')
 
     expect(wrapper.text()).toContain('Talent Number 8')
-    expect(wrapper.text()).toContain('天赋数 8 继承')
+    expect(wrapper.text()).toContain('现实转化能力')
 
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('空缺数')).trigger('click')
 
     expect(wrapper.text()).toContain('Missing Number 2')
-    expect(wrapper.text()).toContain('空缺数 2 表示生日数字里少了')
-    expect(wrapper.text()).toContain('需要后天补课')
+    expect(wrapper.text()).toContain('缺少了「2」的能量')
+    expect(wrapper.text()).toContain('后天有意识地培养')
     expect(wrapper.findAll('.linked').some((tile) => tile.text().includes('7'))).toBe(true)
   })
 
@@ -264,20 +266,20 @@ describe('MainPage', () => {
 
     expect(wrapper.text()).toContain('需要补足')
     expect(wrapper.text()).toContain('容易卡住')
-    expect(wrapper.text()).toContain('不是优势')
-    expect(wrapper.text()).toContain('需要后天补课')
+    expect(wrapper.text()).toContain('不是缺陷')
+    expect(wrapper.text()).toContain('后天有意识地培养')
   })
 
   it('建议可以在给自己和与对方相处之间切换', async () => {
     const wrapper = mount(MainPage)
 
     await wrapper.find('input[type="date"]').setValue('1989-08-20')
-    expect(wrapper.text()).toContain('先温柔地承认自己的独立需求')
+    expect(wrapper.text()).toContain('真正的领导力不是独自扛起一切')
 
     await wrapper.findAll('.advice-tab').find((button) => button.text().includes('与对方相处')).trigger('click')
 
-    expect(wrapper.text()).toContain('如果你在看另一个人')
-    expect(wrapper.text()).toContain('少用催促')
+    expect(wrapper.text()).toContain('看见对方的“行动快”')
+    expect(wrapper.text()).toContain('清晰的请求')
   })
 
   it('全局导出默认与内置数据文件规格一致', async () => {
@@ -285,6 +287,17 @@ describe('MainPage', () => {
     const payload = await getExportedPayload(wrapper)
 
     expect(payload).toEqual(numberReadings)
+  })
+
+  it('取消确认时不会导出 JSON 文件', async () => {
+    const wrapper = mount(MainPage)
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const createObjectURL = vi.spyOn(URL, 'createObjectURL')
+
+    await wrapper.find('.export-action').trigger('click')
+
+    expect(confirm).toHaveBeenCalledTimes(1)
+    expect(createObjectURL).not.toHaveBeenCalled()
   })
 
   it('全局导出包含全部解读内容数据和当前修改', async () => {
