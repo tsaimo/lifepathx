@@ -1,5 +1,6 @@
 const MASTER_NUMBERS = [11, 22, 33, 44]
 const GRID_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+const MISSING_NUMBERS = [0, ...GRID_NUMBERS]
 export const MIN_BIRTH_YEAR = 1900
 export const MAX_BIRTH_YEAR = 9999
 const BIRTHDAY_RELATED_DAYS = {
@@ -140,7 +141,6 @@ function getPresentDigits({ year, month, day }) {
   return `${year}${String(month).padStart(2, '0')}${String(day).padStart(2, '0')}`
     .split('')
     .map(Number)
-    .filter((digit) => digit > 0)
 }
 
 export function calculateNumerologyProfile(birthDate) {
@@ -155,7 +155,7 @@ export function calculateNumerologyProfile(birthDate) {
   const birthdayNumber = reduceBirthdayNumber(day)
   const talentNumber = reduceToSingleDigit(month + day)
   const presentDigits = getPresentDigits(parsed)
-  const missingNumbers = GRID_NUMBERS.filter((number) => !presentDigits.includes(number))
+  const missingNumbers = MISSING_NUMBERS.filter((number) => !presentDigits.includes(number))
 
   return {
     destiny,

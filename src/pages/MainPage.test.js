@@ -30,6 +30,7 @@ describe('MainPage', () => {
     expect(wrapper.find('.rules-toggle').attributes('disabled')).toBeDefined()
     expect(birthdayTab.attributes('disabled')).toBeDefined()
     expect(findNumberTile(wrapper, 7).attributes('disabled')).toBeDefined()
+    expect(wrapper.findAll('.extra-number-button').find((button) => button.text() === '22').attributes('disabled')).toBeDefined()
     expect(relationshipAdviceTab.attributes('disabled')).toBeDefined()
 
     await birthdayTab.trigger('click')
@@ -45,6 +46,7 @@ describe('MainPage', () => {
     expect(wrapper.find('.rules-toggle').attributes('disabled')).toBeUndefined()
     expect(birthdayTab.attributes('disabled')).toBeUndefined()
     expect(findNumberTile(wrapper, 7).attributes('disabled')).toBeUndefined()
+    expect(wrapper.findAll('.extra-number-button').find((button) => button.text() === '22').attributes('disabled')).toBeUndefined()
     expect(relationshipAdviceTab.attributes('disabled')).toBeUndefined()
 
     await birthdayTab.trigger('click')
@@ -58,10 +60,33 @@ describe('MainPage', () => {
 
     await wrapper.find('input[type="date"]').setValue('1942-06-18')
 
-    expect(wrapper.text()).toContain('建造者')
+    expect(wrapper.text()).toContain('愿景建造者')
     expect(wrapper.text()).toContain('命运数 22')
     expect(wrapper.text()).toContain('根数 4')
-    expect(wrapper.findAll('.active').some((tile) => tile.text().includes('4'))).toBe(true)
+    expect(wrapper.findAll('.extra-number-button').some((button) => button.classes().includes('active') && button.text() === '22')).toBe(true)
+    expect(wrapper.findAll('.tile').some((tile) => tile.classes().includes('linked') && tile.text() === '4')).toBe(true)
+  })
+
+  it('命运数和空缺数在九宫格下方展示额外数字解读', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.find('input[type="date"]').setValue('1999-11-22')
+
+    expect(wrapper.findAll('.tile').map((button) => button.text())).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
+    expect(wrapper.findAll('.extra-number-button').map((button) => button.text())).toEqual(['11', '22', '33'])
+
+    await wrapper.findAll('.extra-number-button').find((button) => button.text() === '11').trigger('click')
+
+    expect(wrapper.text()).toContain('Destiny Number 11')
+    expect(wrapper.text()).toContain('灵感者')
+
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('空缺数')).trigger('click')
+
+    expect(wrapper.findAll('.tile').map((button) => button.text())).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
+    expect(wrapper.findAll('.extra-number-button').map((button) => button.text())).toEqual(['0'])
+    expect(wrapper.findAll('.extra-number-button').some((button) => button.classes().includes('active') && button.text() === '0')).toBe(true)
+    expect(wrapper.text()).toContain('Missing Number 0')
+    expect(wrapper.text()).toContain('缺少 0：留白与潜能')
   })
 
   it('切换查看生日数、天赋数和空缺数解读', async () => {
@@ -144,7 +169,7 @@ describe('MainPage', () => {
     await wrapper.find('.rules-toggle').trigger('click')
 
     expect(wrapper.text()).toContain('空缺数怎么算')
-    expect(wrapper.text()).toContain('完整生日数字中没有出现的 1-9')
+    expect(wrapper.text()).toContain('完整生日数字中没有出现的 0-9')
   })
 
   it('空缺数解读展示缺失带来的补足方向', async () => {

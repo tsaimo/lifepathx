@@ -50,6 +50,9 @@ function withAdviceGuidance(reading) {
 const baseReadings = lifePathReadings
   .filter((reading) => reading.number >= 1 && reading.number <= 9)
   .map(withAdviceGuidance)
+const masterReadings = lifePathReadings
+  .filter((reading) => [11, 22, 33].includes(reading.number))
+  .map(withAdviceGuidance)
 
 const birthdayNotes = {
   1: ['主动表达需求', '把个人风格放到台前', '避免急着争第一'],
@@ -85,6 +88,31 @@ const missingNotes = {
   7: ['练习独立思考', '补足深度复盘', '避免只看表面反馈'],
   8: ['练习资源意识', '补足现实目标感', '避免回避金钱、权责和边界'],
   9: ['练习放下和整合', '补足整体视角', '避免困在单点得失里'],
+}
+
+const missingZeroReading = {
+  number: 0,
+  title: '缺少 0：留白与潜能',
+  summary:
+    '空缺数 0 表示生日数字里没有出现“0”这组留白、放大和潜能经验。它不是传统九宫格里的主轴，但会提醒你练习允许未知、保留弹性，并把空白空间转化为真正可承接的可能性。',
+  strengths: ['练习留白和弹性', '补足对未知的容纳', '需要刻意建立放大潜能的经验'],
+  challenges: ['避免把空白都填满', '遇到不确定时更容易急着定论', '可能用过度安排掩盖不安全感'],
+  advice: {
+    self: [
+      '先把缺少 0 看成需要练习的留白能力，不是给自己扣分的标签。',
+      '从“补足对未知的容纳”开始，选一个很小的日常场景慢慢练。',
+      '当你发现自己想把空白都填满时，先停下来，给自己一点重新选择的空间。',
+      '可以借用身边擅长保留弹性的人做参照，但不需要一下子变成对方的样子。',
+    ],
+    relationship: [
+      '如果对方缺少 0，先理解这可能是他面对未知时的短板，不一定是故意僵硬。',
+      '沟通时把可选择范围说清楚，别默认对方自然知道怎么和不确定相处。',
+      '看到对方急着定论时，少一点指责，多一点示范和边界。',
+      '相处中可以给对方低压力的留白机会，让改变有台阶可走。',
+    ],
+  },
+  keywords: ['留白', '潜能', '弹性'],
+  practice: '练习留白和弹性',
 }
 
 export const birthdayRelatedDays = {
@@ -222,12 +250,13 @@ export const readingTypes = [
     eyebrow: 'Destiny Number',
     description: '从完整出生日期归约出的核心路径，延续当前生命灵数解读。',
     readings: baseReadings,
+    extraReadings: masterReadings,
     rules: {
       title: '命运数怎么算',
       blocks: [
         {
           title: '基本公式',
-          lines: ['命运数 = 归约(月) + 归约(日) + 归约(年)，再把总和继续归约。', '归约表示把数字逐位相加，直到得到 1-9；如果过程中得到 11、22、33、44，会先作为主数保留。'],
+          lines: ['命运数 = 归约(月) + 归约(日) + 归约(年)，再把总和继续归约。', '归约表示把数字逐位相加，直到得到 1-9；如果过程中得到 11、22、33，会先作为主数保留并显示在九宫格下方。'],
         },
         {
           title: '计算示例',
@@ -285,8 +314,9 @@ export const readingTypes = [
     label: '空缺数',
     resultLabel: '空缺数',
     eyebrow: 'Missing Number',
-    description: '查看完整生日数字中没有出现的 1-9，提示更需要刻意练习的主题。',
+    description: '查看完整生日数字中没有出现的 0-9，提示更需要刻意练习的主题。',
     readings: buildMissingReadings(),
+    extraReadings: [missingZeroReading],
     sectionLabels: {
       strengths: '需要补足',
       challenges: '容易卡住',
@@ -296,11 +326,11 @@ export const readingTypes = [
       blocks: [
         {
           title: '基本公式',
-          lines: ['空缺数 = 完整生日数字中没有出现的 1-9。0 不参与判断。', '把年月日写成 YYYYMMDD，检查 1 到 9 哪些数字没有出现。空缺数可能有多个，也可能很少。'],
+          lines: ['空缺数 = 完整生日数字中没有出现的 0-9。0 会作为九宫格外的额外解读显示。', '把年月日写成 YYYYMMDD，检查 0 到 9 哪些数字没有出现。空缺数可能有多个，也可能很少。'],
         },
         {
           title: '计算示例',
-          lines: ['生日 1989-08-18 写作 19890818，出现了 1、8、9。', '没有出现 2、3、4、5、6、7，所以这些都是空缺数。'],
+          lines: ['生日 1989-08-18 写作 19890818，出现了 0、1、8、9。', '没有出现 2、3、4、5、6、7，所以这些都是空缺数。'],
         },
       ],
     },

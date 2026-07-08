@@ -36,6 +36,16 @@ describe('lifePathReadings', () => {
     })
   })
 
+  it('命运数和空缺数提供九宫格外的额外解读', () => {
+    const destinyType = readingTypes.find((type) => type.id === 'destiny')
+    const missingType = readingTypes.find((type) => type.id === 'missing')
+
+    expect(destinyType.extraReadings.map((reading) => reading.number)).toEqual([11, 22, 33])
+    expect(missingType.extraReadings.map((reading) => reading.number)).toEqual([0])
+    expect(missingType.extraReadings[0].summary).toContain('空缺数 0')
+    expect(missingType.rules.blocks[0].lines.join('')).toContain('0-9')
+  })
+
   it('生日数提供 1-31 的具体日期解读', () => {
     const birthdayType = readingTypes.find((type) => type.id === 'birthday')
 

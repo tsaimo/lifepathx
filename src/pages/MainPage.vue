@@ -12,6 +12,8 @@ const calculated = ref(null)
 const activeTypeId = ref('destiny')
 const isBirthDateReady = computed(() => Boolean(calculated.value))
 const activeType = computed(() => findReadingType(activeTypeId.value))
+const activeReadings = computed(() => [...activeType.value.readings, ...(activeType.value.extraReadings ?? [])])
+const visibleExtraReadings = computed(() => activeType.value.extraReadings ?? [])
 const visibleBirthdayDayReadings = computed(() => {
   if (activeTypeId.value !== 'birthday') {
     return []
@@ -32,7 +34,7 @@ const currentReading = computed(() => {
     return activeType.value.detailReadings.find((reading) => reading.number === selectedBirthdayDay.value)
   }
 
-  return activeType.value.readings.find((reading) => reading.number === selected.value)
+  return activeReadings.value.find((reading) => reading.number === selected.value)
 })
 
 const linkedNumbers = computed(() => {
@@ -61,7 +63,9 @@ function getCalculatedNumber(typeId) {
   }
 
   if (typeId === 'destiny') {
-    return calculated.value.destiny.root
+    const destinyNumber = calculated.value.destiny.number
+
+    return activeReadings.value.some((reading) => reading.number === destinyNumber) ? destinyNumber : calculated.value.destiny.root
   }
 
   if (typeId === 'birthday') {
@@ -149,6 +153,22 @@ function selectNumber(reading) {
           :disabled="!isBirthDateReady"
           @select="selectNumber"
         />
+        <div v-if="visibleExtraReadings.length" class="extra-numbers" aria-label="额外数字解读">
+          <button
+            v-for="reading in visibleExtraReadings"
+            :key="reading.number"
+            class="extra-number-button"
+            :class="{
+              active: selected === reading.number,
+              linked: linkedNumbers.includes(reading.number) && selected !== reading.number,
+            }"
+            type="button"
+            :disabled="!isBirthDateReady"
+            @click="selectNumber(reading)"
+          >
+            {{ reading.number }}
+          </button>
+        </div>
         <div v-if="activeTypeId === 'birthday'" class="birthday-days" aria-label="出生日解读">
           <button
             v-for="reading in visibleBirthdayDayReadings"
@@ -227,7 +247,15 @@ h1 {
   margin-top: 12px;
 }
 
-.day-button {
+.extra-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.day-button,
+.extra-number-button {
   background: #fffdf8;
   border: 1px solid #dfd5c5;
   border-radius: 8px;
@@ -239,14 +267,27 @@ h1 {
   min-height: 34px;
 }
 
+.extra-number-button {
+  min-width: 58px;
+  padding: 8px 14px;
+}
+
 .day-button:hover,
-.day-button.active {
+.day-button.active,
+.extra-number-button:hover,
+.extra-number-button.active {
   background: #9a5b35;
   border-color: #9a5b35;
   color: #fffaf2;
 }
 
-.day-button:disabled {
+.extra-number-button.linked {
+  border-color: #9a5b35;
+  box-shadow: inset 0 0 0 2px #9a5b35;
+}
+
+.day-button:disabled,
+.extra-number-button:disabled {
   background: #f1eadf;
   border-color: #dfd5c5;
   color: #8b948f;

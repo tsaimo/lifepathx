@@ -75,6 +75,12 @@ describe('lifePathCalculator', () => {
     })
   })
 
+  it('空缺数包含生日数字中没有出现的 0', () => {
+    expect(calculateNumerologyProfile('1999-11-22')).toMatchObject({
+      missing: { numbers: [0, 3, 4, 5, 6, 7, 8], linkedNumbers: [0, 3, 4, 5, 6, 7, 8] },
+    })
+  })
+
   it('生日数按日期关联规则计算', () => {
     expect(calculateNumerologyProfile('1989-08-22')).toMatchObject({
       birthday: { number: 2, source: 22, linkedNumbers: [2] },
