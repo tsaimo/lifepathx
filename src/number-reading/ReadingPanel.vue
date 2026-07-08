@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 
 const STORAGE_KEY = 'lifepathx:reading-history:v1'
+const CURRENT_STORAGE_KEY = 'lifepathx:reading-current:v1'
 
 const props = defineProps({
   reading: { type: Object, required: true },
@@ -16,6 +17,7 @@ const adviceModes = [
 ]
 const isEditing = ref(false)
 const historyByKey = ref(loadHistory())
+const currentByKey = ref(loadCurrentReadings())
 const draft = ref(createEditableContent(props.reading))
 const sectionLabels = computed(() => ({
   strengths: '优势',
@@ -24,10 +26,9 @@ const sectionLabels = computed(() => ({
 }))
 const readingKey = computed(() => `${props.type.id}:${props.reading.number}`)
 const versions = computed(() => historyByKey.value[readingKey.value] ?? [])
-const latestVersion = computed(() => versions.value.at(-1))
 const displayedReading = computed(() => ({
   ...props.reading,
-  ...(latestVersion.value?.content ?? {}),
+  ...(currentByKey.value[readingKey.value] ?? {}),
 }))
 
 const activeAdviceItems = computed(() => {
@@ -52,8 +53,16 @@ watch(
 )
 
 function loadHistory() {
+  return loadStoredMap(STORAGE_KEY)
+}
+
+function loadCurrentReadings() {
+  return loadStoredMap(CURRENT_STORAGE_KEY)
+}
+
+function loadStoredMap(key) {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {}
+    return JSON.parse(localStorage.getItem(key)) ?? {}
   } catch {
     return {}
   }
@@ -66,6 +75,16 @@ function persistHistory(nextHistory) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(nextHistory))
   } catch {
     // Keep the in-memory edit history usable if browser storage is unavailable.
+  }
+}
+
+function persistCurrentReadings(nextCurrentReadings) {
+  currentByKey.value = nextCurrentReadings
+
+  try {
+    localStorage.setItem(CURRENT_STORAGE_KEY, JSON.stringify(nextCurrentReadings))
+  } catch {
+    // Keep the in-memory edited reading usable if browser storage is unavailable.
   }
 }
 
@@ -132,12 +151,16 @@ function saveDraft() {
   const nextVersion = {
     id: `${Date.now()}-${versions.value.length + 1}`,
     savedAt: new Date().toISOString(),
-    content: serializeDraft(),
+    content: serializeReading(displayedReading.value),
   }
 
   persistHistory({
     ...historyByKey.value,
     [key]: [...versions.value, nextVersion],
+  })
+  persistCurrentReadings({
+    ...currentByKey.value,
+    [key]: serializeDraft(),
   })
   isEditing.value = false
 }
@@ -145,17 +168,11 @@ function saveDraft() {
 function restoreVersion(version) {
   const key = readingKey.value
 
-  persistHistory({
-    ...historyByKey.value,
-    [key]: [
-      ...versions.value,
-      {
-        id: `${Date.now()}-${versions.value.length + 1}`,
-        savedAt: new Date().toISOString(),
-        content: version.content,
-      },
-    ],
+  persistCurrentReadings({
+    ...currentByKey.value,
+    [key]: version.content,
   })
+  draft.value = createEditableContent(displayedReading.value)
   isEditing.value = false
 }
 
@@ -172,6 +189,21 @@ function deleteVersion(versionId) {
 
   persistHistory(nextHistory)
   draft.value = createEditableContent(displayedReading.value)
+}
+
+function serializeReading(reading) {
+  const advice = normalizeAdvice(reading.advice)
+
+  return {
+    title: reading.title,
+    summary: reading.summary,
+    strengths: [...reading.strengths],
+    challenges: [...reading.challenges],
+    advice: {
+      self: [...advice.self],
+      relationship: [...advice.relationship],
+    },
+  }
 }
 </script>
 

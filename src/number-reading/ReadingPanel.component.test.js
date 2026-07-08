@@ -36,10 +36,13 @@ describe('ReadingPanel', () => {
     expect(wrapper.text()).toContain('新版摘要')
     expect(wrapper.text()).toContain('历史版本')
     expect(wrapper.findAll('.history-item')).toHaveLength(1)
-    expect(JSON.parse(localStorage.getItem('lifepathx:reading-history:v1'))['destiny:1']).toHaveLength(1)
+    expect(JSON.parse(localStorage.getItem('lifepathx:reading-history:v1'))['destiny:1'][0].content.title).toBe(
+      reading.title,
+    )
+    expect(JSON.parse(localStorage.getItem('lifepathx:reading-current:v1'))['destiny:1'].title).toBe('新版开创者')
   })
 
-  it('历史版本可以恢复和删除', async () => {
+  it('历史版本保存修改前内容，恢复时不新增历史版本', async () => {
     const wrapper = mount(ReadingPanel, {
       props: { reading, type },
     })
@@ -53,15 +56,19 @@ describe('ReadingPanel', () => {
 
     expect(wrapper.findAll('.history-item')).toHaveLength(2)
     expect(wrapper.find('h2').text()).toBe('第二版标题')
+    expect(JSON.parse(localStorage.getItem('lifepathx:reading-history:v1'))['destiny:1'][1].content.title).toBe(
+      '第一版标题',
+    )
 
     await wrapper.findAll('.history-item')[0].find('.history-actions .panel-action').trigger('click')
 
-    expect(wrapper.find('h2').text()).toBe('第一版标题')
-    expect(wrapper.findAll('.history-item')).toHaveLength(3)
-
-    await wrapper.findAll('.history-item')[2].find('.danger').trigger('click')
-
-    expect(wrapper.find('h2').text()).toBe('第二版标题')
+    expect(wrapper.find('h2').text()).toBe(reading.title)
     expect(wrapper.findAll('.history-item')).toHaveLength(2)
+    expect(JSON.parse(localStorage.getItem('lifepathx:reading-current:v1'))['destiny:1'].title).toBe(reading.title)
+
+    await wrapper.findAll('.history-item')[1].find('.danger').trigger('click')
+
+    expect(wrapper.find('h2').text()).toBe(reading.title)
+    expect(wrapper.findAll('.history-item')).toHaveLength(1)
   })
 })
