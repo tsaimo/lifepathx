@@ -2,14 +2,19 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import MainPage from './MainPage.vue'
 
+function findNumberTile(wrapper, number) {
+  return wrapper.findAll('.tile').find((button) => button.text() === String(number))
+}
+
 describe('MainPage', () => {
   it('点击数字后展示对应中文解读', async () => {
     const wrapper = mount(MainPage)
 
     expect(wrapper.findAll('.tile')).toHaveLength(9)
+    expect(wrapper.findAll('.tile').map((button) => button.text())).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9'])
     expect(wrapper.text()).toContain('开创者')
 
-    await wrapper.findAll('.tile').find((button) => button.text().includes('7')).trigger('click')
+    await findNumberTile(wrapper, 7).trigger('click')
 
     expect(wrapper.text()).toContain('探求者')
     expect(wrapper.text()).toContain('追问本质')
@@ -45,7 +50,8 @@ describe('MainPage', () => {
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('空缺数')).trigger('click')
 
     expect(wrapper.text()).toContain('Missing Number 2')
-    expect(wrapper.text()).toContain('空缺数 2 继承')
+    expect(wrapper.text()).toContain('空缺数 2 表示生日数字里少了')
+    expect(wrapper.text()).toContain('需要后天补课')
     expect(wrapper.findAll('.linked').some((tile) => tile.text().includes('7'))).toBe(true)
   })
 
@@ -54,7 +60,7 @@ describe('MainPage', () => {
 
     await wrapper.find('input[type="date"]').setValue('1989-08-18')
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数')).trigger('click')
-    await wrapper.findAll('.tile').find((button) => button.text().includes('5')).trigger('click')
+    await findNumberTile(wrapper, 5).trigger('click')
 
     expect(wrapper.findAll('.day-button').map((button) => button.text())).toEqual(['5', '14', '23'])
 
@@ -70,12 +76,12 @@ describe('MainPage', () => {
     const wrapper = mount(MainPage)
 
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('生日数')).trigger('click')
-    await wrapper.findAll('.tile').find((button) => button.text().includes('2')).trigger('click')
+    await findNumberTile(wrapper, 2).trigger('click')
 
     expect(wrapper.findAll('.day-button').map((button) => button.text())).toEqual(['2', '22', '29'])
     expect(wrapper.text()).not.toContain('31 日：系统成就者')
 
-    await wrapper.findAll('.tile').find((button) => button.text().includes('3')).trigger('click')
+    await findNumberTile(wrapper, 3).trigger('click')
 
     expect(wrapper.findAll('.day-button').map((button) => button.text())).toEqual(['3', '12', '21', '30'])
   })
@@ -104,5 +110,27 @@ describe('MainPage', () => {
 
     expect(wrapper.text()).toContain('空缺数怎么算')
     expect(wrapper.text()).toContain('完整生日数字中没有出现的 1-9')
+  })
+
+  it('空缺数解读展示缺失带来的补足方向', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('空缺数')).trigger('click')
+
+    expect(wrapper.text()).toContain('需要补足')
+    expect(wrapper.text()).toContain('容易卡住')
+    expect(wrapper.text()).toContain('不是优势')
+    expect(wrapper.text()).toContain('需要后天补课')
+  })
+
+  it('建议可以在给自己和与对方相处之间切换', async () => {
+    const wrapper = mount(MainPage)
+
+    expect(wrapper.text()).toContain('先温柔地承认自己的独立需求')
+
+    await wrapper.findAll('.advice-tab').find((button) => button.text().includes('与对方相处')).trigger('click')
+
+    expect(wrapper.text()).toContain('如果你在看另一个人')
+    expect(wrapper.text()).toContain('少用催促')
   })
 })

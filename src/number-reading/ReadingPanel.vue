@@ -1,8 +1,40 @@
 <script setup>
-defineProps({
+import { computed, ref, watch } from 'vue'
+
+const props = defineProps({
   reading: { type: Object, required: true },
   type: { type: Object, required: true },
 })
+
+const activeAdviceMode = ref('self')
+const adviceModes = [
+  { id: 'self', label: '给自己' },
+  { id: 'relationship', label: '与对方相处' },
+]
+const sectionLabels = computed(() => ({
+  strengths: '优势',
+  challenges: '课题',
+  ...props.type.sectionLabels,
+}))
+
+const activeAdviceItems = computed(() => {
+  if (Array.isArray(props.reading.advice)) {
+    return props.reading.advice
+  }
+
+  if (typeof props.reading.advice === 'string') {
+    return [props.reading.advice]
+  }
+
+  return props.reading.advice[activeAdviceMode.value] ?? []
+})
+
+watch(
+  () => props.reading.number,
+  () => {
+    activeAdviceMode.value = 'self'
+  },
+)
 </script>
 
 <template>
@@ -14,18 +46,34 @@ defineProps({
     <p class="summary">{{ reading.summary }}</p>
 
     <section>
-      <h3>优势</h3>
+      <h3>{{ sectionLabels.strengths }}</h3>
       <p>{{ reading.strengths.join(' / ') }}</p>
     </section>
 
     <section>
-      <h3>课题</h3>
+      <h3>{{ sectionLabels.challenges }}</h3>
       <p>{{ reading.challenges.join(' / ') }}</p>
     </section>
 
     <section>
-      <h3>建议</h3>
-      <p>{{ reading.advice }}</p>
+      <div class="section-heading">
+        <h3>建议</h3>
+        <div class="advice-tabs" aria-label="建议视角">
+          <button
+            v-for="mode in adviceModes"
+            :key="mode.id"
+            class="advice-tab"
+            :class="{ active: activeAdviceMode === mode.id }"
+            type="button"
+            @click="activeAdviceMode = mode.id"
+          >
+            {{ mode.label }}
+          </button>
+        </div>
+      </div>
+      <ol class="advice-list">
+        <li v-for="item in activeAdviceItems" :key="item">{{ item }}</li>
+      </ol>
     </section>
   </article>
 </template>
@@ -73,6 +121,13 @@ section + section {
   margin-top: 14px;
 }
 
+.section-heading {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
 h3 {
   font-size: 14px;
   margin-bottom: 6px;
@@ -81,6 +136,41 @@ h3 {
 section p {
   color: #4c5a63;
   line-height: 1.65;
+}
+
+.advice-tabs {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.advice-tab {
+  background: #fffdf8;
+  border: 1px solid #dfd5c5;
+  border-radius: 8px;
+  color: #4c5a63;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 8px;
+}
+
+.advice-tab:hover,
+.advice-tab.active {
+  background: #20272d;
+  border-color: #20272d;
+  color: #fffaf2;
+}
+
+.advice-list {
+  color: #4c5a63;
+  line-height: 1.65;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.advice-list li + li {
+  margin-top: 6px;
 }
 
 @media (max-width: 900px) {

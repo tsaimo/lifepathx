@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { calculateNumerologyProfile } from './lifePathCalculator'
+import { calculateNumerologyProfile, normalizeBirthDateInput } from './lifePathCalculator'
 
 defineProps({
   activeType: { type: Object, required: true },
@@ -11,6 +11,14 @@ const birthDate = ref('')
 const showRules = ref(false)
 const result = computed(() => calculateNumerologyProfile(birthDate.value))
 
+function normalizeBirthDate() {
+  const normalizedDate = normalizeBirthDateInput(birthDate.value)
+
+  if (birthDate.value && normalizedDate !== birthDate.value) {
+    birthDate.value = normalizedDate
+  }
+}
+
 watch(result, (value) => emit('calculated', value), { immediate: true })
 </script>
 
@@ -19,7 +27,14 @@ watch(result, (value) => emit('calculated', value), { immediate: true })
   <section class="calculator">
     <label>
       <span>出生日期</span>
-      <input v-model="birthDate" type="date" aria-label="出生日期" />
+      <input
+        v-model="birthDate"
+        type="date"
+        min="1900-01-01"
+        max="9999-12-31"
+        aria-label="出生日期"
+        @blur="normalizeBirthDate"
+      />
     </label>
 
     <div class="result" :class="{ empty: !result }">

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { calculateLifePath, calculateNumerologyProfile, reduceLifePathNumber, reduceToSingleDigit } from './lifePathCalculator'
+import {
+  calculateLifePath,
+  calculateNumerologyProfile,
+  getDefaultBirthDate,
+  normalizeBirthDateInput,
+  reduceLifePathNumber,
+  reduceToSingleDigit,
+} from './lifePathCalculator'
 
 describe('lifePathCalculator', () => {
   it('归约普通数字到个位并保留主数', () => {
@@ -22,6 +29,23 @@ describe('lifePathCalculator', () => {
       linkedNumbers: [8],
       parts: { month: 8, day: 9, year: 9 },
     })
+  })
+
+  it('拒绝 1900 年以前或非 4 位年份的生日', () => {
+    expect(calculateLifePath('1899-12-31')).toBeNull()
+    expect(calculateLifePath('099-08-18')).toBeNull()
+    expect(calculateLifePath('10000-08-18')).toBeNull()
+    expect(calculateNumerologyProfile('1899-12-31')).toBeNull()
+    expect(calculateNumerologyProfile('10000-08-18')).toBeNull()
+  })
+
+  it('把越界生日修正为当前日期 22 年前的默认值', () => {
+    const referenceDate = new Date(2026, 6, 8)
+
+    expect(getDefaultBirthDate(referenceDate)).toBe('2004-07-08')
+    expect(normalizeBirthDateInput('1222-08-18', referenceDate)).toBe('2004-07-08')
+    expect(normalizeBirthDateInput('10000-08-18', referenceDate)).toBe('2004-07-08')
+    expect(normalizeBirthDateInput('1989-08-18', referenceDate)).toBe('1989-08-18')
   })
 
   it('主数结果联动根数', () => {

@@ -129,7 +129,7 @@ function selectNumber(reading) {
   <main class="main-page">
     <section class="intro">
       <p>LifePathX</p>
-      <h1>生命灵数解读</h1>
+      <h1>生命灵数</h1>
     </section>
 
     <section class="content">

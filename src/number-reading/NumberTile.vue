@@ -12,7 +12,6 @@ defineEmits(['select'])
   <!-- 数字卡片：只负责展示与点击。 -->
   <button class="tile" :class="{ active, linked }" type="button" @click="$emit('select', reading)">
     <span>{{ reading.number }}</span>
-    <small>{{ reading.title }}</small>
   </button>
 </template>
 
@@ -51,8 +50,4 @@ span {
   line-height: 1;
 }
 
-small {
-  font-size: 12px;
-  line-height: 1.2;
-}
 </style>

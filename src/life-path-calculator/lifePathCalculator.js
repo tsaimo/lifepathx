@@ -1,5 +1,7 @@
 const MASTER_NUMBERS = [11, 22, 33, 44]
 const GRID_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+export const MIN_BIRTH_YEAR = 1900
+export const MAX_BIRTH_YEAR = 9999
 const BIRTHDAY_RELATED_DAYS = {
   1: [1, 10, 19, 28],
   2: [2, 22, 29],
@@ -45,16 +47,78 @@ function reduceBirthdayNumber(day) {
   return matchedEntry ? Number(matchedEntry[0]) : reduceToSingleDigit(day)
 }
 
-export function calculateLifePath(birthDate) {
+function formatDatePart(value) {
+  return String(value).padStart(2, '0')
+}
+
+export function getDefaultBirthDate(referenceDate = new Date()) {
+  const year = referenceDate.getFullYear() - 22
+  const month = formatDatePart(referenceDate.getMonth() + 1)
+  const day = formatDatePart(referenceDate.getDate())
+
+  return `${year}-${month}-${day}`
+}
+
+export function normalizeBirthDateInput(birthDate, referenceDate = new Date()) {
+  if (!birthDate) {
+    return ''
+  }
+
+  const matchedDate = birthDate.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+
+  if (!matchedDate) {
+    return getDefaultBirthDate(referenceDate)
+  }
+
+  const [, yearValue, monthValue, dayValue] = matchedDate
+  const year = Number(yearValue)
+  const month = Number(monthValue)
+  const day = Number(dayValue)
+  const checkedDate = new Date(year, month - 1, day)
+  const isRealDate =
+    checkedDate.getFullYear() === year && checkedDate.getMonth() === month - 1 && checkedDate.getDate() === day
+
+  if (year < MIN_BIRTH_YEAR || year > MAX_BIRTH_YEAR || !isRealDate) {
+    return getDefaultBirthDate(referenceDate)
+  }
+
+  return birthDate
+}
+
+function parseBirthDate(birthDate) {
   if (!birthDate) {
     return null
   }
 
-  const [year, month, day] = birthDate.split('-').map(Number)
+  const matchedDate = birthDate.match(/^(\d{4})-(\d{2})-(\d{2})$/)
 
-  if (!year || !month || !day) {
+  if (!matchedDate) {
     return null
   }
+
+  const [, yearValue, monthValue, dayValue] = matchedDate
+  const year = Number(yearValue)
+  const month = Number(monthValue)
+  const day = Number(dayValue)
+  const checkedDate = new Date(year, month - 1, day)
+  const isRealDate =
+    checkedDate.getFullYear() === year && checkedDate.getMonth() === month - 1 && checkedDate.getDate() === day
+
+  if (year < MIN_BIRTH_YEAR || year > MAX_BIRTH_YEAR || !isRealDate) {
+    return null
+  }
+
+  return { year, month, day }
+}
+
+export function calculateLifePath(birthDate) {
+  const parsed = parseBirthDate(birthDate)
+
+  if (!parsed) {
+    return null
+  }
+
+  const { year, month, day } = parsed
 
   const parts = {
     month: reduceLifePathNumber(month),
@@ -70,20 +134,6 @@ export function calculateLifePath(birthDate) {
     linkedNumbers: number === root ? [number] : [number, root],
     parts,
   }
-}
-
-function parseBirthDate(birthDate) {
-  if (!birthDate) {
-    return null
-  }
-
-  const [year, month, day] = birthDate.split('-').map(Number)
-
-  if (!year || !month || !day) {
-    return null
-  }
-
-  return { year, month, day }
 }
 
 function getPresentDigits({ year, month, day }) {

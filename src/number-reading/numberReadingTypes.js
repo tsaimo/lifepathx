@@ -1,6 +1,55 @@
 import lifePathReadings from './lifePathReadings.json'
 
-const baseReadings = lifePathReadings.filter((reading) => reading.number >= 1 && reading.number <= 9)
+function buildAdviceGuidance({ advice, strengths, challenges, keywords }) {
+  const primaryStrength = strengths[0]
+  const secondStrength = strengths[1]
+  const primaryChallenge = challenges[0]
+  const secondChallenge = challenges[1]
+  const theme = keywords[0]
+
+  return {
+    self: [
+      `先温柔地承认自己的${theme}需求，不必急着把它解释给所有人听。`,
+      `把“${primaryStrength}”用在一个具体小行动上，今天先完成一步就很好。`,
+      `当${primaryChallenge}出现时，先停一下，问问自己真正想保护的是什么。`,
+      advice,
+    ],
+    relationship: [
+      `如果你在看另一个人，先看见对方的${primaryStrength}，再谈期待和调整。`,
+      `沟通时给对方一点准备空间，少用催促，多用清楚、具体的请求。`,
+      `遇到${secondChallenge}时，不急着贴标签，先确认对方是不是累了或没有安全感。`,
+      `相处里多创造能发挥${secondStrength}的场景，对方会更愿意靠近和配合。`,
+    ],
+  }
+}
+
+function buildMissingAdviceGuidance({ gap, avoid, reading }) {
+  return {
+    self: [
+      `先把缺少 ${reading.number} 看成需要练习的能力，不是给自己扣分的标签。`,
+      `从“${gap}”开始，选一个很小的日常场景慢慢练。`,
+      `当你发现自己${avoid.replace('避免', '')}时，先停下来，给自己一点重新选择的空间。`,
+      `可以借用身边擅长“${reading.keywords[0]}”的人做参照，但不需要一下子变成对方的样子。`,
+    ],
+    relationship: [
+      `如果对方缺少 ${reading.number}，先理解这可能是他的短板，不一定是故意不配合。`,
+      `沟通时把期待说得具体一点，别默认对方自然知道怎么补上“${gap}”。`,
+      `看到对方${avoid.replace('避免', '')}时，少一点指责，多一点示范和边界。`,
+      `相处中可以给对方低压力的练习机会，让改变有台阶可走。`,
+    ],
+  }
+}
+
+function withAdviceGuidance(reading) {
+  return {
+    ...reading,
+    advice: buildAdviceGuidance(reading),
+  }
+}
+
+const baseReadings = lifePathReadings
+  .filter((reading) => reading.number >= 1 && reading.number <= 9)
+  .map(withAdviceGuidance)
 
 const birthdayNotes = {
   1: ['主动表达需求', '把个人风格放到台前', '避免急着争第一'],
@@ -94,8 +143,30 @@ function buildReadings(kind, notesByNumber) {
       summary: `${kind} ${reading.number} 继承“${reading.keywords.join('、')}”的主题，更强调它在${kind === '生日数' ? '日常反应和外在表现' : kind === '天赋数' ? '自然能力和做事优势' : '需要补课和刻意练习'}中的作用。${notes[0]}，同时要留意${notes[2]}。`,
       strengths: [notes[0], notes[1], reading.strengths[0]],
       challenges: [notes[2], reading.challenges[0], reading.challenges[1]],
-      advice: `${notes[1]}是这个数字最适合被看见的位置。把它放进具体行动里，比只给自己贴标签更有价值。`,
+      advice: buildAdviceGuidance({
+        advice: `${notes[1]}是这个数字最适合被看见的位置。把它放进具体行动里，比只给自己贴标签更有价值。`,
+        strengths: [notes[0], notes[1], reading.strengths[0]],
+        challenges: [notes[2], reading.challenges[0], reading.challenges[1]],
+        keywords: reading.keywords,
+      }),
       keywords: reading.keywords,
+    }
+  })
+}
+
+function buildMissingReadings() {
+  return baseReadings.map((reading) => {
+    const [practice, gap, avoid] = missingNotes[reading.number]
+
+    return {
+      number: reading.number,
+      title: `缺少 ${reading.number}：${reading.title}`,
+      summary: `空缺数 ${reading.number} 表示生日数字里少了“${reading.keywords.join('、')}”这组经验，通常不是优势，而是容易不熟、回避或需要后天补课的地方。它提醒你留意${avoid}，并用温和的方式补上${gap}。`,
+      strengths: [`缺少${reading.keywords[0]}的自然启动`, gap, `需要刻意建立${reading.keywords[1]}经验`],
+      challenges: [avoid, `遇到${reading.challenges[0]}时更容易卡住`, `可能借用过度补偿来掩盖不熟悉`],
+      advice: buildMissingAdviceGuidance({ gap, avoid, reading }),
+      keywords: reading.keywords,
+      practice,
     }
   })
 }
@@ -129,7 +200,12 @@ function buildBirthdayDayReadings() {
       summary: `${summary} 这一天会进一步归约到生日数 ${birthdayNumber}，可同时参考九宫格中的 ${birthdayNumber} 号主题。`,
       strengths,
       challenges,
-      advice: `${advice} 先从一个小行动开始验证，会更容易稳定下来。`,
+      advice: buildAdviceGuidance({
+        advice: `${advice} 先从一个小行动开始验证，会更容易稳定下来。`,
+        strengths,
+        challenges,
+        keywords: [`${day}日`, `生日数${birthdayNumber}`],
+      }),
       keywords: [`${day}日`, `生日数${birthdayNumber}`],
       linkedNumber: birthdayNumber,
     }
@@ -210,7 +286,11 @@ export const readingTypes = [
     resultLabel: '空缺数',
     eyebrow: 'Missing Number',
     description: '查看完整生日数字中没有出现的 1-9，提示更需要刻意练习的主题。',
-    readings: buildReadings('空缺数', missingNotes),
+    readings: buildMissingReadings(),
+    sectionLabels: {
+      strengths: '需要补足',
+      challenges: '容易卡住',
+    },
     rules: {
       title: '空缺数怎么算',
       blocks: [
