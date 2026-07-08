@@ -14,6 +14,157 @@ const isBirthDateReady = computed(() => Boolean(calculated.value))
 const activeType = computed(() => findReadingType(activeTypeId.value))
 const activeReadings = computed(() => [...activeType.value.readings, ...(activeType.value.extraReadings ?? [])])
 const visibleExtraReadings = computed(() => activeType.value.extraReadings ?? [])
+const gridReadings = computed(() => readingTypes[0].readings)
+const gridPositions = {
+  1: { x: 0, y: 0 },
+  2: { x: 1, y: 0 },
+  3: { x: 2, y: 0 },
+  4: { x: 0, y: 1 },
+  5: { x: 1, y: 1 },
+  6: { x: 2, y: 1 },
+  7: { x: 0, y: 2 },
+  8: { x: 1, y: 2 },
+  9: { x: 2, y: 2 },
+}
+const edgeByNumber = {
+  2: 'top',
+  4: 'left',
+  6: 'right',
+  8: 'bottom',
+}
+const adjacentEdges = {
+  top: ['left', 'right'],
+  right: ['top', 'bottom'],
+  bottom: ['left', 'right'],
+  left: ['top', 'bottom'],
+}
+
+function getLineCrossValue(number, start, end) {
+  const point = gridPositions[number]
+  const startPoint = gridPositions[start]
+  const endPoint = gridPositions[end]
+
+  if (!point || !startPoint || !endPoint) {
+    return null
+  }
+
+  return (
+    (point.x - startPoint.x) * (endPoint.y - startPoint.y) -
+    (point.y - startPoint.y) * (endPoint.x - startPoint.x)
+  )
+}
+
+function areCollinear(numbers) {
+  if (numbers.length < 3) {
+    return true
+  }
+
+  const [start, middle, end] = numbers
+
+  return getLineCrossValue(middle, start, end) === 0
+}
+
+function sortLineNumbers(numbers) {
+  const [start, end] = [numbers[0], numbers[numbers.length - 1]]
+  const startPoint = gridPositions[start]
+  const endPoint = gridPositions[end]
+  const axis = Math.abs(endPoint.x - startPoint.x) >= Math.abs(endPoint.y - startPoint.y) ? 'x' : 'y'
+  const direction = endPoint[axis] >= startPoint[axis] ? 1 : -1
+
+  return [...numbers].sort((first, second) => {
+    const firstPoint = gridPositions[first]
+    const secondPoint = gridPositions[second]
+
+    return (firstPoint[axis] - secondPoint[axis]) * direction
+  })
+}
+
+function areAdjacentEdgeMidpoints(first, second) {
+  const firstEdge = edgeByNumber[first]
+  const secondEdge = edgeByNumber[second]
+
+  return Boolean(firstEdge && secondEdge && adjacentEdges[firstEdge].includes(secondEdge))
+}
+
+function getPairs(numbers) {
+  return numbers.flatMap((first, firstIndex) => numbers.slice(firstIndex + 1).map((second) => [first, second]))
+}
+
+const connectionNumbers = computed(() => {
+  if (!calculated.value) {
+    return []
+  }
+
+  return [calculated.value.destiny.root, calculated.value.birthday.number, calculated.value.talent.number]
+})
+const uniqueConnectionNumbers = computed(() =>
+  connectionNumbers.value.filter((number, index, numbers) => numbers.indexOf(number) === index),
+)
+const connectionLineNumbers = computed(() => {
+  if (uniqueConnectionNumbers.value.length < 2) {
+    return []
+  }
+
+  if (uniqueConnectionNumbers.value.length === 3 && areCollinear(uniqueConnectionNumbers.value)) {
+    return [sortLineNumbers(uniqueConnectionNumbers.value)]
+  }
+
+  return getPairs(uniqueConnectionNumbers.value).filter(([first, second]) => areAdjacentEdgeMidpoints(first, second))
+})
+const connectionLineSegments = computed(() => {
+  if (activeTypeId.value !== 'connection') {
+    return []
+  }
+
+  return connectionLineNumbers.value.map((lineNumbers) =>
+    lineNumbers.map((number) => {
+      const position = gridPositions[number]
+
+      return `${position.x + 0.5},${position.y + 0.5}`
+    }),
+  )
+})
+const connectionReadingNumbers = computed(() =>
+  connectionLineNumbers.value.flat().filter((number, index, numbers) => numbers.indexOf(number) === index),
+)
+const connectionPathLabel = computed(() => {
+  if (!connectionLineNumbers.value.length) {
+    return ''
+  }
+
+  return connectionLineNumbers.value.map((numbers) => numbers.join(' → ')).join(' / ')
+})
+const connectionReading = computed(() => {
+  const path = connectionPathLabel.value
+  const readings = connectionReadingNumbers.value
+    .map((number) => gridReadings.value.find((reading) => reading.number === number))
+    .filter(Boolean)
+  const title = readings.map((reading) => reading.title).join('、')
+  const sourcePath = connectionNumbers.value.join('、')
+
+  return {
+    number: path || '无连线',
+    title: path ? `${path} 连线` : '未形成连线',
+    summary: path
+      ? `命运数根数、生日数、天赋数分别落在 ${sourcePath}。实际形成连线的是 ${path}，所以本次只解读${title}这条连线。`
+      : `命运数根数、生日数、天赋数分别落在 ${sourcePath || '等待生日'}。三个数字没有形成直线，也没有任意两个数字刚好落在相邻边的中点。`,
+    strengths: readings.map((reading) => reading.strengths[0]),
+    challenges: readings.map((reading) => reading.challenges[0]),
+    advice: {
+      self: [
+        '先看连线上的第一个数字，它通常代表这条路径最自然的启动方式。',
+        '再看最后一个数字，它提示你把能量落地时最容易调用的能力。',
+        '如果有多条连线，先分别理解每条线，再看它们共同指向的行动节奏。',
+      ],
+      relationship: [
+        '如果你在看另一个人，先理解这条线同时包含方向、反应和做事方式。',
+        '沟通时不要只抓单个数字，连线上的组合会影响对方如何从想法走到行动。',
+        '当连线呈现拉扯时，用具体分工和节奏帮助对方把能量接住。',
+      ],
+    },
+    keywords: readings.flatMap((reading) => reading.keywords),
+  }
+})
 const visibleBirthdayDayReadings = computed(() => {
   if (activeTypeId.value !== 'birthday') {
     return []
@@ -30,6 +181,10 @@ const visibleBirthdayDayReadings = computed(() => {
   return readings
 })
 const currentReading = computed(() => {
+  if (activeTypeId.value === 'connection') {
+    return connectionReading.value
+  }
+
   if (activeTypeId.value === 'birthday') {
     return activeType.value.detailReadings.find((reading) => reading.number === selectedBirthdayDay.value)
   }
@@ -54,6 +209,10 @@ const linkedNumbers = computed(() => {
     return calculated.value.talent.linkedNumbers
   }
 
+  if (activeTypeId.value === 'connection') {
+    return connectionReadingNumbers.value
+  }
+
   return calculated.value.missing.linkedNumbers
 })
 
@@ -74,6 +233,10 @@ function getCalculatedNumber(typeId) {
 
   if (typeId === 'talent') {
     return calculated.value.talent.number
+  }
+
+  if (typeId === 'connection') {
+    return connectionReadingNumbers.value[0] ?? connectionNumbers.value[0] ?? selected.value
   }
 
   return calculated.value.missing.numbers[0] ?? selected.value
@@ -150,6 +313,7 @@ function selectNumber(reading) {
           :readings="activeType.readings"
           :selected="selected"
           :linked-numbers="linkedNumbers"
+          :line-segments="connectionLineSegments"
           :disabled="!isBirthDateReady"
           @select="selectNumber"
         />

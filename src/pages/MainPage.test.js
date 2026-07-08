@@ -89,6 +89,39 @@ describe('MainPage', () => {
     expect(wrapper.text()).toContain('缺少 0：留白与潜能')
   })
 
+  it('连线解读在三个数字形成直线时展示九宫格连线', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.find('input[type="date"]').setValue('1902-03-05')
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('连线解读')).trigger('click')
+
+    expect(wrapper.text()).toContain('Connection Line 2 → 5 → 8')
+    expect(wrapper.text()).toContain('2 → 5 → 8 连线')
+    expect(wrapper.find('.line-layer').exists()).toBe(true)
+    expect(wrapper.findAll('.connection-line').map((line) => line.attributes('points'))).toEqual([
+      '1.5,0.5 1.5,1.5 1.5,2.5',
+    ])
+  })
+
+  it('连线解读在不能形成直线时连接相邻边中点', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.find('input[type="date"]').setValue('1902-04-04')
+    await wrapper.findAll('.tab').find((tab) => tab.text().includes('连线解读')).trigger('click')
+
+    expect(wrapper.text()).toContain('Connection Line 2 → 4 / 4 → 8')
+    expect(wrapper.text()).toContain('2 → 4 / 4 → 8 连线')
+    expect(wrapper.findAll('.connection-line').map((line) => line.attributes('points'))).toEqual([
+      '1.5,0.5 0.5,1.5',
+      '0.5,1.5 1.5,2.5',
+    ])
+
+    await wrapper.find('input[type="date"]').setValue('1902-04-22')
+
+    expect(wrapper.text()).toContain('Connection Line 无连线')
+    expect(wrapper.find('.line-layer').exists()).toBe(false)
+  })
+
   it('切换查看生日数、天赋数和空缺数解读', async () => {
     const wrapper = mount(MainPage)
 

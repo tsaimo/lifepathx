@@ -310,6 +310,31 @@ export const readingTypes = [
     },
   },
   {
+    id: 'connection',
+    label: '连线解读',
+    resultLabel: '连线',
+    eyebrow: 'Connection Line',
+    description: '由命运数、生日数、天赋数在九宫格内形成的路径，观察核心方向、自然反应和行动天赋之间的连接。',
+    readings: baseReadings,
+    sectionLabels: {
+      strengths: '连线优势',
+      challenges: '连线课题',
+    },
+    rules: {
+      title: '连线怎么算',
+      blocks: [
+        {
+          title: '基本公式',
+          lines: ['连线 = 命运数根数、生日数、天赋数在九宫格中的位置。', '三个数字必须在九宫格上形成一条直线才连；如果不能形成直线，则任意两个数字刚好是相邻边的中点才连。'],
+        },
+        {
+          title: '阅读方式',
+          lines: ['先看实际连线经过哪些数字，再只解读这些数字组成的线段。', '这条线不是新的计算数字，而是帮助观察三个核心数字是否形成清晰的支撑、拉扯或互补路径。'],
+        },
+      ],
+    },
+  },
+  {
     id: 'missing',
     label: '空缺数',
     resultLabel: '空缺数',

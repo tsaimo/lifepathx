@@ -17,8 +17,8 @@ describe('lifePathReadings', () => {
     })
   })
 
-  it('提供四类 1-9 解读与计算规则', () => {
-    expect(readingTypes.map((type) => type.id)).toEqual(['destiny', 'birthday', 'talent', 'missing'])
+  it('提供五类 1-9 解读与计算规则', () => {
+    expect(readingTypes.map((type) => type.id)).toEqual(['destiny', 'birthday', 'talent', 'connection', 'missing'])
 
     readingTypes.forEach((type) => {
       expect(type.readings.map((reading) => reading.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -34,6 +34,17 @@ describe('lifePathReadings', () => {
         expect(block.lines.length).toBeGreaterThanOrEqual(2)
       })
     })
+  })
+
+  it('连线解读提供九宫格连线规则', () => {
+    const connectionType = readingTypes.find((type) => type.id === 'connection')
+
+    expect(connectionType.sectionLabels).toMatchObject({
+      strengths: '连线优势',
+      challenges: '连线课题',
+    })
+    expect(connectionType.rules.blocks[0].lines.join('')).toContain('三个数字必须在九宫格上形成一条直线')
+    expect(connectionType.rules.blocks[0].lines.join('')).toContain('相邻边的中点')
   })
 
   it('命运数和空缺数提供九宫格外的额外解读', () => {
