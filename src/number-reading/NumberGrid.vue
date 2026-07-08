@@ -150,7 +150,7 @@ watch(() => [props.readings, props.lineSegments], scheduleLineGeometryUpdate, { 
   stroke: var(--color-accent);
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 3;
+  stroke-width: 5;
   vector-effect: non-scaling-stroke;
 }
 
