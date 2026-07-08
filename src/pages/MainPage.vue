@@ -4,10 +4,11 @@ import LifePathCalculator from '../life-path-calculator/LifePathCalculator.vue'
 import NumberGrid from '../number-reading/NumberGrid.vue'
 import ReadingPanel from '../number-reading/ReadingPanel.vue'
 import ReadingTypeTabs from '../number-reading/ReadingTypeTabs.vue'
+import { findConnectionLine } from '../number-reading/connectionLineReadings'
 import { findReadingType, getBirthdayRelatedDays, readingTypes } from '../number-reading/numberReadingTypes'
 import { loadCurrentReadings, saveCurrentReadings } from '../number-reading/readingCurrentStorage'
 import ReadingExportButton from '../reading-export/ReadingExportButton.vue'
-import { createReadingExportPayload } from '../reading-export/readingExport'
+import { collectAllReadingContents } from '../reading-export/readingExport'
 import ReadingHistoryControls from '../reading-history/ReadingHistoryControls.vue'
 import { loadReadingHistory, saveReadingHistory } from '../reading-history/readingHistoryStorage'
 import ReadingImportDialog from '../reading-import/ReadingImportDialog.vue'
@@ -137,42 +138,60 @@ const connectionLineSegments = computed(() => {
 const connectionReadingNumbers = computed(() =>
   connectionLineNumbers.value.flat().filter((number, index, numbers) => numbers.indexOf(number) === index),
 )
-const connectionPathLabel = computed(() => {
-  if (!connectionLineNumbers.value.length) {
-    return ''
+const connectionReading = computed(() => {
+  const sourcePath = connectionNumbers.value.join('、')
+  const lines = connectionLineNumbers.value
+    .map((lineNumbers) => findConnectionLine(activeType.value.connectionLines ?? [], lineNumbers))
+    .filter(Boolean)
+
+  if (!lines.length) {
+    return {
+      number: '无连线',
+      title: '未形成连线',
+      summary: `命运数根数、生日数、天赋数分别落在 ${sourcePath || '等待生日'}。三个数字没有形成直线，也没有任意两个数字刚好落在相邻边的中点。`,
+      strengths: ['先分别阅读三个核心数字', '观察数字之间没有形成稳定路径', '适合从单点能力开始整理节奏'],
+      challenges: ['容易各自发力而不成线', '需要人为建立优先级', '行动顺序需要额外确认'],
+      advice: {
+        self: [
+          '先分别确认命运数、生日数和天赋数各自代表的需求。',
+          '把近期最重要的一件事写成明确顺序，不急着要求三股力量同时启动。',
+          '当你感觉方向分散时，用一个小目标把注意力收回来。',
+        ],
+        relationship: [
+          '如果你在看另一个人，先不要强行解释成某条连线。',
+          '沟通时分别看对方的方向、反应和做事方式，避免把不同层面的需求混在一起。',
+          '需要合作时，先约定优先级和分工，再讨论长期节奏。',
+        ],
+      },
+      keywords: ['无连线', '分散', '整理'],
+    }
   }
 
-  return connectionLineNumbers.value.map((numbers) => numbers.join(' → ')).join(' / ')
-})
-const connectionReading = computed(() => {
-  const path = connectionPathLabel.value
-  const readings = connectionReadingNumbers.value
-    .map((number) => gridReadings.value.find((reading) => reading.number === number))
-    .filter(Boolean)
-  const title = readings.map((reading) => reading.title).join('、')
-  const sourcePath = connectionNumbers.value.join('、')
+  if (lines.length === 1) {
+    const line = lines[0]
+
+    return {
+      number: line.id,
+      title: line.title,
+      summary: `命运数根数、生日数、天赋数分别落在 ${sourcePath}。本次成立的是 ${line.label} ${line.name}：${line.summary}`,
+      strengths: line.strengths,
+      challenges: line.challenges,
+      advice: line.advice,
+      keywords: line.keywords,
+    }
+  }
 
   return {
-    number: path || '无连线',
-    title: path ? `${path} 连线` : '未形成连线',
-    summary: path
-      ? `命运数根数、生日数、天赋数分别落在 ${sourcePath}。实际形成连线的是 ${path}，所以本次只解读${title}这条连线。`
-      : `命运数根数、生日数、天赋数分别落在 ${sourcePath || '等待生日'}。三个数字没有形成直线，也没有任意两个数字刚好落在相邻边的中点。`,
-    strengths: readings.map((reading) => reading.strengths[0]),
-    challenges: readings.map((reading) => reading.challenges[0]),
+    number: lines.map((line) => line.id).join('/'),
+    title: lines.map((line) => line.title).join(' / '),
+    summary: `命运数根数、生日数、天赋数分别落在 ${sourcePath}。本次同时成立 ${lines.map((line) => `${line.label} ${line.name}`).join('、')}，请分别阅读每条线的独立主题，再看它们如何共同影响节奏。`,
+    strengths: lines.flatMap((line) => line.strengths.slice(0, 2)),
+    challenges: lines.flatMap((line) => line.challenges.slice(0, 2)),
     advice: {
-      self: [
-        '先看连线上的第一个数字，它通常代表这条路径最自然的启动方式。',
-        '再看最后一个数字，它提示你把能量落地时最容易调用的能力。',
-        '如果有多条连线，先分别理解每条线，再看它们共同指向的行动节奏。',
-      ],
-      relationship: [
-        '如果你在看另一个人，先理解这条线同时包含方向、反应和做事方式。',
-        '沟通时不要只抓单个数字，连线上的组合会影响对方如何从想法走到行动。',
-        '当连线呈现拉扯时，用具体分工和节奏帮助对方把能量接住。',
-      ],
+      self: lines.flatMap((line) => line.advice.self.slice(0, 2)),
+      relationship: lines.flatMap((line) => line.advice.relationship.slice(0, 2)),
     },
-    keywords: readings.flatMap((reading) => reading.keywords),
+    keywords: lines.flatMap((line) => line.keywords),
   }
 })
 const visibleBirthdayDayReadings = computed(() => {
@@ -322,7 +341,10 @@ function persistReadingHistory(nextHistory) {
 }
 
 function createHistoryVersion() {
-  const snapshot = createReadingExportPayload(readingTypes, currentReadings.value).readings
+  const snapshot = {
+    ...collectAllReadingContents(readingTypes),
+    ...currentReadings.value,
+  }
   const nextVersion = {
     id: `${Date.now()}-${readingHistory.value.length + 1}`,
     savedAt: new Date().toISOString(),

@@ -1,6 +1,5 @@
 import { collectAllReadingContents } from '../reading-export/readingExport'
 
-const IMPORT_SCHEMA_VERSION = 1
 const MAX_IMPORT_FILE_SIZE = 256 * 1024
 
 export function validateImportFile(file) {
@@ -11,7 +10,7 @@ export function validateImportFile(file) {
   }
 
   if (file.size > MAX_IMPORT_FILE_SIZE) {
-    errors.push('文件大小超过 256KB，请导入由本页面导出的精简 JSON 文件。')
+    errors.push('文件大小超过 256KB，请导入由本页面导出的 JSON 文件。')
   }
 
   if (!file.name.toLowerCase().endsWith('.json')) {
@@ -30,27 +29,29 @@ export function validateImportPayload(payload, readingTypes) {
     return { errors: ['JSON 根节点必须是对象。'], readings }
   }
 
-  if (payload.schemaVersion !== IMPORT_SCHEMA_VERSION) {
-    errors.push(`schemaVersion 必须是 ${IMPORT_SCHEMA_VERSION}。`)
+  if (!payload.birthdayRelatedDays || typeof payload.birthdayRelatedDays !== 'object' || Array.isArray(payload.birthdayRelatedDays)) {
+    errors.push('birthdayRelatedDays 必须是对象。')
   }
 
-  if (!payload.readings || typeof payload.readings !== 'object' || Array.isArray(payload.readings)) {
-    errors.push('readings 必须是对象，键名格式为“类型:数字”。')
+  if (!Array.isArray(payload.readingTypes)) {
+    errors.push('readingTypes 必须是数组。')
     return { errors, readings }
   }
 
+  const importedReadings = collectAllReadingContents(payload.readingTypes)
+
   Object.keys(expectedReadings).forEach((key) => {
-    if (!Object.hasOwn(payload.readings, key)) {
-      errors.push(`readings 缺少 ${key}。`)
+    if (!Object.hasOwn(importedReadings, key)) {
+      errors.push(`readingTypes 缺少 ${key}。`)
     }
   })
 
-  Object.entries(payload.readings).forEach(([key, content]) => {
+  Object.entries(importedReadings).forEach(([key, content]) => {
     if (!key.includes(':')) {
-      errors.push(`readings.${key} 的键名必须包含类型和数字，例如 destiny:1。`)
+      errors.push(`readingTypes 中 ${key} 的键名必须包含类型和数字，例如 destiny:1。`)
     }
 
-    const contentErrors = validateReadingContent(content, `readings.${key}`)
+    const contentErrors = validateReadingContent(content, `readingTypes.${key}`)
 
     if (contentErrors.length) {
       errors.push(...contentErrors)

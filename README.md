@@ -13,7 +13,8 @@ lifepathx/
 ├── src/
 │   ├── main.js         # Vue 应用入口
 │   ├── App.vue         # 根组件
-│   ├── number-reading/ # 数字解读组件、数据与测试
+│   ├── data/           # 页面静态解读数据 JSON
+│   ├── number-reading/ # 数字解读组件、工具与测试
 │   ├── reading-export/ # 全局解读内容导出组件与工具
 │   ├── reading-import/ # 全局解读内容导入弹层与校验
 │   ├── reading-history/ # 全局历史版本控件与存储

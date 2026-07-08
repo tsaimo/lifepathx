@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import numberReadings from '../data/numberReadings.json'
 import MainPage from './MainPage.vue'
 
 function findNumberTile(wrapper, number) {
@@ -42,6 +43,12 @@ async function getExportedPayload(wrapper, selector = '.export-action') {
   expect(revokeObjectURL).toHaveBeenCalledWith('blob:readings')
 
   return payload
+}
+
+function findPayloadReading(payload, typeId, number, collection = 'readings') {
+  return payload.readingTypes
+    .find((type) => type.id === typeId)
+    [collection].find((reading) => reading.number === number)
 }
 
 describe('MainPage', () => {
@@ -137,8 +144,9 @@ describe('MainPage', () => {
     await wrapper.find('input[type="date"]').setValue('1902-03-05')
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('连线解读')).trigger('click')
 
-    expect(wrapper.text()).toContain('Connection Line 2 → 5 → 8')
-    expect(wrapper.text()).toContain('2 → 5 → 8 连线')
+    expect(wrapper.text()).toContain('Connection Line 2-5-8')
+    expect(wrapper.text()).toContain('情绪线（2-5-8）')
+    expect(wrapper.text()).toContain('感受、变化和现实压力之间的流动')
     expect(wrapper.find('.line-layer').exists()).toBe(true)
     expect(wrapper.findAll('.connection-line').map((line) => line.attributes('points'))).toEqual([
       '1.5,0.5 1.5,1.5 1.5,2.5',
@@ -151,8 +159,9 @@ describe('MainPage', () => {
     await wrapper.find('input[type="date"]').setValue('1902-04-04')
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('连线解读')).trigger('click')
 
-    expect(wrapper.text()).toContain('Connection Line 2 → 4 / 4 → 8')
-    expect(wrapper.text()).toContain('2 → 4 / 4 → 8 连线')
+    expect(wrapper.text()).toContain('Connection Line 2-4/4-8')
+    expect(wrapper.text()).toContain('灵巧线（2-4）')
+    expect(wrapper.text()).toContain('纪律线（4-8）')
     expect(wrapper.findAll('.connection-line').map((line) => line.attributes('points'))).toEqual([
       '1.5,0.5 0.5,1.5',
       '0.5,1.5 1.5,2.5',
@@ -271,7 +280,14 @@ describe('MainPage', () => {
     expect(wrapper.text()).toContain('少用催促')
   })
 
-  it('全局导出包含全部静态解读内容数据', async () => {
+  it('全局导出默认与内置数据文件规格一致', async () => {
+    const wrapper = mount(MainPage)
+    const payload = await getExportedPayload(wrapper)
+
+    expect(payload).toEqual(numberReadings)
+  })
+
+  it('全局导出包含全部解读内容数据和当前修改', async () => {
     localStorage.setItem(
       'lifepathx:reading-current:v1',
       JSON.stringify({
@@ -287,11 +303,11 @@ describe('MainPage', () => {
     const wrapper = mount(MainPage)
     const payload = await getExportedPayload(wrapper)
 
-    expect(payload.schemaVersion).toBe(1)
-    expect(payload.readings['destiny:1'].title).toBe('已编辑命运数')
-    expect(payload.readings['birthday:31'].title).toContain('31 日')
-    expect(payload.readings['talent:9'].title).toBeTruthy()
-    expect(payload.readings['missing:0'].title).toContain('缺少 0')
+    expect(payload.birthdayRelatedDays).toEqual(numberReadings.birthdayRelatedDays)
+    expect(findPayloadReading(payload, 'destiny', 1).title).toBe('已编辑命运数')
+    expect(findPayloadReading(payload, 'birthday', 31, 'detailReadings').title).toContain('31 日')
+    expect(findPayloadReading(payload, 'talent', 9).title).toBeTruthy()
+    expect(findPayloadReading(payload, 'missing', 0, 'extraReadings').title).toContain('缺少 0')
   })
 
   it('全局历史版本包含全部解读内容，可恢复、导出和删除', async () => {
@@ -313,9 +329,9 @@ describe('MainPage', () => {
 
     const historyPayload = await getExportedPayload(wrapper, '.history-export-action')
 
-    expect(historyPayload.schemaVersion).toBe(1)
-    expect(historyPayload.readings['destiny:1'].title).toBe('开创者')
-    expect(historyPayload.readings['missing:0'].title).toContain('缺少 0')
+    expect(historyPayload.birthdayRelatedDays).toEqual(numberReadings.birthdayRelatedDays)
+    expect(findPayloadReading(historyPayload, 'destiny', 1).title).toBe('开创者')
+    expect(findPayloadReading(historyPayload, 'missing', 0, 'extraReadings').title).toContain('缺少 0')
 
     vi.restoreAllMocks()
     await wrapper.find('.history-controls .top-action').trigger('click')
@@ -335,17 +351,17 @@ describe('MainPage', () => {
     const payload = await getExportedPayload(wrapper)
 
     vi.restoreAllMocks()
-    payload.readings['destiny:1'] = {
+    Object.assign(findPayloadReading(payload, 'destiny', 1), {
       title: '全局导入标题',
       summary: '全局导入摘要',
       strengths: ['全局导入优势'],
       challenges: ['全局导入课题'],
       advice: { self: ['全局导入建议'], relationship: ['全局导入相处建议'] },
-    }
+    })
 
     await wrapper.find('.import-action').trigger('click')
 
-    const invalidFile = new File([JSON.stringify({ schemaVersion: 1, readings: {} })], 'invalid.json', {
+    const invalidFile = new File([JSON.stringify({ birthdayRelatedDays: {}, readingTypes: [] })], 'invalid.json', {
       type: 'application/json',
     })
     const fileInput = wrapper.find('.import-file')
@@ -356,7 +372,7 @@ describe('MainPage', () => {
     await flushPromises()
 
     expect(wrapper.find('.import-overlay').exists()).toBe(true)
-    expect(wrapper.text()).toContain('readings 缺少 destiny:1')
+    expect(wrapper.text()).toContain('readingTypes 缺少 destiny:1')
 
     const validFile = new File([JSON.stringify(payload)], 'valid.json', { type: 'application/json' })
 

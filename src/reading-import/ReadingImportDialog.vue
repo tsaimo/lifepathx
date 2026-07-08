@@ -71,7 +71,7 @@ async function importReadings() {
         <button class="top-action" type="button" @click="$emit('close')">关闭</button>
       </div>
       <p class="import-help">
-        请选择本页面导出的 JSON 文件。文件大小不超过 256KB，结构必须包含 schemaVersion 和 readings 对象；readings 需要包含全部解读内容。
+        请选择本页面导出的 JSON 文件。文件大小不超过 256KB，结构需与内置数据一致，包含 birthdayRelatedDays 和 readingTypes，并覆盖全部解读内容。
       </p>
       <div class="import-actions">
         <input class="import-file" type="file" accept="application/json,.json" @change="handleFileChange" />

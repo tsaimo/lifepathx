@@ -1,19 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import readings from './lifePathReadings.json'
 import { birthdayRelatedDays, readingTypes } from './numberReadingTypes'
 
 describe('lifePathReadings', () => {
-  it('覆盖 1-9 与主数 11/22/33/44', () => {
-    expect(readings.map((reading) => reading.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22, 33, 44])
+  it('命运数覆盖 1-9 与页面额外主数', () => {
+    const destinyType = readingTypes.find((type) => type.id === 'destiny')
+
+    expect(destinyType.readings.map((reading) => reading.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    expect(destinyType.extraReadings.map((reading) => reading.number)).toEqual([11, 22, 33])
   })
 
   it('每个数字都有可阅读的中文解读', () => {
+    const destinyType = readingTypes.find((type) => type.id === 'destiny')
+    const readings = [...destinyType.readings, ...destinyType.extraReadings]
+
     readings.forEach((reading) => {
       expect(reading.summary.length).toBeGreaterThan(35)
       expect(reading.strengths).toHaveLength(3)
       expect(reading.challenges).toHaveLength(3)
-      expect(reading.advice.length).toBeGreaterThan(20)
-      expect(reading.refs.length).toBeGreaterThan(1)
+      expect(reading.advice.self.join('').length).toBeGreaterThan(20)
+      expect(reading.advice.relationship.join('').length).toBeGreaterThan(20)
     })
   })
 
@@ -39,12 +44,37 @@ describe('lifePathReadings', () => {
   it('连线解读提供九宫格连线规则', () => {
     const connectionType = readingTypes.find((type) => type.id === 'connection')
 
+    expect(connectionType.connectionLines.map((line) => line.id)).toEqual([
+      '1-2-3',
+      '4-5-6',
+      '7-8-9',
+      '1-4-7',
+      '2-5-8',
+      '3-6-9',
+      '1-5-9',
+      '3-5-7',
+      '2-4',
+      '2-6',
+      '4-8',
+      '6-8',
+    ])
+    expect(connectionType.connectionLines.find((line) => line.id === '2-4').name).toBe('灵巧线')
+    connectionType.connectionLines.forEach((line) => {
+      expect(line.name).toBeTruthy()
+      expect(line.sourceLabel).toContain('九宫格')
+      expect(line.summary).not.toContain('组成数字')
+      expect(line.strengths).toHaveLength(3)
+      expect(line.challenges).toHaveLength(3)
+      expect(line.advice.self.length).toBeGreaterThan(0)
+      expect(line.advice.relationship.length).toBeGreaterThan(0)
+    })
     expect(connectionType.sectionLabels).toMatchObject({
       strengths: '连线优势',
       challenges: '连线课题',
     })
     expect(connectionType.rules.blocks[0].lines.join('')).toContain('三个数字必须在九宫格上形成一条直线')
     expect(connectionType.rules.blocks[0].lines.join('')).toContain('相邻边的中点')
+    expect(connectionType.rules.blocks[1].lines.join('')).toContain('独立解读')
   })
 
   it('命运数和空缺数提供九宫格外的额外解读', () => {

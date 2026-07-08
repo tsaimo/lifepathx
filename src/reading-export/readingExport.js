@@ -1,24 +1,19 @@
 import { serializeReading } from '../number-reading/readingContent'
+import { birthdayRelatedDays, readingTypes as sourceReadingTypes } from '../number-reading/numberReadingTypes'
 
-const EXPORT_SCHEMA_VERSION = 1
-
-export function createReadingPayload(readings) {
+export function createReadingPayload(currentReadings = {}) {
   return {
-    schemaVersion: EXPORT_SCHEMA_VERSION,
-    exportedAt: new Date().toISOString(),
-    readings,
+    birthdayRelatedDays,
+    readingTypes: applyCurrentReadings(sourceReadingTypes, currentReadings),
   }
 }
 
 export function createReadingExportPayload(readingTypes, currentReadings) {
-  return createReadingPayload({
-    ...collectAllReadingContents(readingTypes),
-    ...currentReadings,
-  })
+  return createReadingPayload(currentReadings)
 }
 
 export function exportReadingPayload(payload, filenamePrefix) {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
 
@@ -30,22 +25,52 @@ export function exportReadingPayload(payload, filenamePrefix) {
 
 export function collectAllReadingContents(readingTypes) {
   return readingTypes.reduce((contents, type) => {
-    getExportableReadings(type).forEach((reading) => {
-      contents[`${type.id}:${reading.number}`] = serializeReading(reading)
+    getReadings(type).forEach((reading) => {
+      contents[getReadingKey(type.id, reading)] = serializeReading(reading)
     })
 
     return contents
   }, {})
 }
 
-function getExportableReadings(type) {
-  if (type.id === 'birthday') {
-    return type.detailReadings
-  }
+function applyCurrentReadings(readingTypes, currentReadings) {
+  return readingTypes.map((type) => {
+    const nextType = {
+      ...type,
+      readings: applyCurrentReadingsToList(type.id, type.readings, currentReadings),
+    }
 
+    if (type.extraReadings) {
+      nextType.extraReadings = applyCurrentReadingsToList(type.id, type.extraReadings, currentReadings)
+    }
+
+    if (type.detailReadings) {
+      nextType.detailReadings = applyCurrentReadingsToList(type.id, type.detailReadings, currentReadings)
+    }
+
+    if (type.connectionLines) {
+      nextType.connectionLines = applyCurrentReadingsToList(type.id, type.connectionLines, currentReadings)
+    }
+
+    return nextType
+  })
+}
+
+function applyCurrentReadingsToList(typeId, readings = [], currentReadings) {
+  return readings.map((reading) => ({
+    ...reading,
+    ...(currentReadings[getReadingKey(typeId, reading)] ?? {}),
+  }))
+}
+
+function getReadings(type) {
   if (type.id === 'connection') {
-    return []
+    return type.connectionLines ?? []
   }
 
-  return [...type.readings, ...(type.extraReadings ?? [])]
+  return [...(type.readings ?? []), ...(type.extraReadings ?? []), ...(type.detailReadings ?? [])]
+}
+
+function getReadingKey(typeId, reading) {
+  return `${typeId}:${reading.id ?? reading.number}`
 }
