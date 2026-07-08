@@ -1,14 +1,19 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-
-const STORAGE_KEY = 'lifepathx:reading-history:v1'
-const CURRENT_STORAGE_KEY = 'lifepathx:reading-current:v1'
+import { normalizeAdvice } from './readingContent'
+import {
+  loadCurrentReadings,
+  saveCurrentReadings,
+} from './readingCurrentStorage'
 
 const props = defineProps({
   reading: { type: Object, required: true },
   type: { type: Object, required: true },
   disabled: { type: Boolean, default: false },
+  currentReadings: { type: Object, default: null },
 })
+
+const emit = defineEmits(['create-history-version', 'update-current-readings'])
 
 const activeAdviceMode = ref('self')
 const adviceModes = [
@@ -16,8 +21,7 @@ const adviceModes = [
   { id: 'relationship', label: '与对方相处' },
 ]
 const isEditing = ref(false)
-const historyByKey = ref(loadHistory())
-const currentByKey = ref(loadCurrentReadings())
+const currentByKey = ref(props.currentReadings ?? loadCurrentReadings())
 const draft = ref(createEditableContent(props.reading))
 const sectionLabels = computed(() => ({
   strengths: '优势',
@@ -25,7 +29,6 @@ const sectionLabels = computed(() => ({
   ...props.type.sectionLabels,
 }))
 const readingKey = computed(() => `${props.type.id}:${props.reading.number}`)
-const versions = computed(() => historyByKey.value[readingKey.value] ?? [])
 const displayedReading = computed(() => ({
   ...props.reading,
   ...(currentByKey.value[readingKey.value] ?? {}),
@@ -52,54 +55,24 @@ watch(
   },
 )
 
-function loadHistory() {
-  return loadStoredMap(STORAGE_KEY)
-}
-
-function loadCurrentReadings() {
-  return loadStoredMap(CURRENT_STORAGE_KEY)
-}
-
-function loadStoredMap(key) {
-  try {
-    return JSON.parse(localStorage.getItem(key)) ?? {}
-  } catch {
-    return {}
-  }
-}
-
-function persistHistory(nextHistory) {
-  historyByKey.value = nextHistory
-
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextHistory))
-  } catch {
-    // Keep the in-memory edit history usable if browser storage is unavailable.
-  }
-}
+watch(
+  () => props.currentReadings,
+  (nextCurrentReadings) => {
+    if (nextCurrentReadings) {
+      currentByKey.value = nextCurrentReadings
+      draft.value = createEditableContent(displayedReading.value)
+    }
+  },
+)
 
 function persistCurrentReadings(nextCurrentReadings) {
   currentByKey.value = nextCurrentReadings
+  emit('update-current-readings', nextCurrentReadings)
 
   try {
-    localStorage.setItem(CURRENT_STORAGE_KEY, JSON.stringify(nextCurrentReadings))
+    saveCurrentReadings(nextCurrentReadings)
   } catch {
     // Keep the in-memory edited reading usable if browser storage is unavailable.
-  }
-}
-
-function normalizeAdvice(advice) {
-  if (Array.isArray(advice)) {
-    return { self: advice, relationship: [] }
-  }
-
-  if (typeof advice === 'string') {
-    return { self: [advice], relationship: [] }
-  }
-
-  return {
-    self: advice.self ?? [],
-    relationship: advice.relationship ?? [],
   }
 }
 
@@ -148,16 +121,8 @@ function cancelEdit() {
 
 function saveDraft() {
   const key = readingKey.value
-  const nextVersion = {
-    id: `${Date.now()}-${versions.value.length + 1}`,
-    savedAt: new Date().toISOString(),
-    content: serializeReading(displayedReading.value),
-  }
 
-  persistHistory({
-    ...historyByKey.value,
-    [key]: [...versions.value, nextVersion],
-  })
+  emit('create-history-version')
   persistCurrentReadings({
     ...currentByKey.value,
     [key]: serializeDraft(),
@@ -165,46 +130,6 @@ function saveDraft() {
   isEditing.value = false
 }
 
-function restoreVersion(version) {
-  const key = readingKey.value
-
-  persistCurrentReadings({
-    ...currentByKey.value,
-    [key]: version.content,
-  })
-  draft.value = createEditableContent(displayedReading.value)
-  isEditing.value = false
-}
-
-function deleteVersion(versionId) {
-  const key = readingKey.value
-  const nextVersions = versions.value.filter((version) => version.id !== versionId)
-  const nextHistory = { ...historyByKey.value }
-
-  if (nextVersions.length) {
-    nextHistory[key] = nextVersions
-  } else {
-    delete nextHistory[key]
-  }
-
-  persistHistory(nextHistory)
-  draft.value = createEditableContent(displayedReading.value)
-}
-
-function serializeReading(reading) {
-  const advice = normalizeAdvice(reading.advice)
-
-  return {
-    title: reading.title,
-    summary: reading.summary,
-    strengths: [...reading.strengths],
-    challenges: [...reading.challenges],
-    advice: {
-      self: [...advice.self],
-      relationship: [...advice.relationship],
-    },
-  }
-}
 </script>
 
 <template>
@@ -248,22 +173,6 @@ function serializeReading(reading) {
       <ol class="advice-list">
         <li v-for="item in activeAdviceItems" :key="item">{{ item }}</li>
       </ol>
-    </section>
-
-    <section v-if="versions.length" class="history">
-      <h3>历史版本</h3>
-      <div class="history-list">
-        <div v-for="version in versions" :key="version.id" class="history-item">
-          <div>
-            <b>{{ version.content.title }}</b>
-            <small>{{ new Date(version.savedAt).toLocaleString() }}</small>
-          </div>
-          <div class="history-actions">
-            <button class="panel-action" type="button" @click="restoreVersion(version)">恢复</button>
-            <button class="panel-action danger" type="button" @click="deleteVersion(version.id)">删除</button>
-          </div>
-        </div>
-      </div>
     </section>
 
     <div
@@ -361,8 +270,7 @@ function serializeReading(reading) {
 .panel-heading,
 .editor-heading,
 .edit-actions,
-.form-actions,
-.history-actions {
+.form-actions {
   align-items: center;
   display: flex;
   gap: 8px;
@@ -577,8 +485,7 @@ section p {
   padding-top: 12px;
 }
 
-.compare-panel b,
-.history-item b {
+.compare-panel b {
   color: var(--color-text-high);
 }
 
@@ -603,27 +510,6 @@ textarea {
   width: 100%;
 }
 
-.history {
-  border-top: 1px solid var(--color-stroke);
-  padding-top: 14px;
-}
-
-.history-list {
-  display: grid;
-  gap: 8px;
-}
-
-.history-item {
-  align-items: center;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-stroke);
-  border-radius: 14px;
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  padding: 10px;
-}
-
 small {
   color: var(--color-text-medium);
   display: block;
@@ -646,11 +532,6 @@ small {
 
   .editor-overlay {
     padding: 12px;
-  }
-
-  .history-item {
-    align-items: start;
-    flex-direction: column;
   }
 }
 </style>

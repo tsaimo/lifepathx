@@ -14,6 +14,9 @@ lifepathx/
 │   ├── main.js         # Vue 应用入口
 │   ├── App.vue         # 根组件
 │   ├── number-reading/ # 数字解读组件、数据与测试
+│   ├── reading-export/ # 全局解读内容导出组件与工具
+│   ├── reading-import/ # 全局解读内容导入弹层与校验
+│   ├── reading-history/ # 全局历史版本控件与存储
 │   ├── life-path-calculator/ # 生命灵数计算组件、逻辑与测试
 │   └── pages/
 │       └── MainPage.vue # main 页面

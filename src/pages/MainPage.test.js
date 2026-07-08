@@ -1,12 +1,55 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import MainPage from './MainPage.vue'
 
 function findNumberTile(wrapper, number) {
   return wrapper.findAll('.tile').find((button) => button.text() === String(number))
 }
 
+async function getExportedPayload(wrapper, selector = '.export-action') {
+  const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:readings')
+  const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+  const createElement = document.createElement.bind(document)
+  const click = vi.fn()
+
+  vi.spyOn(document, 'createElement').mockImplementation((tagName, options) => {
+    if (tagName !== 'a') {
+      return createElement(tagName, options)
+    }
+
+    return {
+      click,
+      set href(value) {
+        this._href = value
+      },
+      get href() {
+        return this._href
+      },
+      set download(value) {
+        this._download = value
+      },
+      get download() {
+        return this._download
+      },
+    }
+  })
+
+  await wrapper.find(selector).trigger('click')
+
+  const payload = JSON.parse(await createObjectURL.mock.calls[0][0].text())
+
+  expect(click).toHaveBeenCalledTimes(1)
+  expect(revokeObjectURL).toHaveBeenCalledWith('blob:readings')
+
+  return payload
+}
+
 describe('MainPage', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.restoreAllMocks()
+  })
+
   it('可以在浅色和深色主题之间切换', async () => {
     const wrapper = mount(MainPage)
     const themeToggle = wrapper.find('.theme-toggle')
@@ -226,5 +269,106 @@ describe('MainPage', () => {
 
     expect(wrapper.text()).toContain('如果你在看另一个人')
     expect(wrapper.text()).toContain('少用催促')
+  })
+
+  it('全局导出包含全部静态解读内容数据', async () => {
+    localStorage.setItem(
+      'lifepathx:reading-current:v1',
+      JSON.stringify({
+        'destiny:1': {
+          title: '已编辑命运数',
+          summary: '已编辑摘要',
+          strengths: ['已编辑优势'],
+          challenges: ['已编辑课题'],
+          advice: { self: ['已编辑建议'], relationship: ['已编辑相处建议'] },
+        },
+      }),
+    )
+    const wrapper = mount(MainPage)
+    const payload = await getExportedPayload(wrapper)
+
+    expect(payload.schemaVersion).toBe(1)
+    expect(payload.readings['destiny:1'].title).toBe('已编辑命运数')
+    expect(payload.readings['birthday:31'].title).toContain('31 日')
+    expect(payload.readings['talent:9'].title).toBeTruthy()
+    expect(payload.readings['missing:0'].title).toContain('缺少 0')
+  })
+
+  it('全局历史版本包含全部解读内容，可恢复、导出和删除', async () => {
+    const wrapper = mount(MainPage)
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.panel-heading .panel-action').trigger('click')
+    await wrapper.find('.draft-panel input').setValue('全局历史当前标题')
+    await wrapper.find('.form-actions .panel-action.primary').trigger('click')
+
+    expect(wrapper.find('.history-controls').exists()).toBe(true)
+    expect(wrapper.findAll('.history-select option')).toHaveLength(1)
+    expect(JSON.parse(localStorage.getItem('lifepathx:reading-history:v2'))[0].readings['destiny:1'].title).toBe(
+      '开创者',
+    )
+    expect(JSON.parse(localStorage.getItem('lifepathx:reading-history:v2'))[0].readings['birthday:31'].title).toContain(
+      '31 日',
+    )
+
+    const historyPayload = await getExportedPayload(wrapper, '.history-export-action')
+
+    expect(historyPayload.schemaVersion).toBe(1)
+    expect(historyPayload.readings['destiny:1'].title).toBe('开创者')
+    expect(historyPayload.readings['missing:0'].title).toContain('缺少 0')
+
+    vi.restoreAllMocks()
+    await wrapper.find('.history-controls .top-action').trigger('click')
+    await findNumberTile(wrapper, 1).trigger('click')
+
+    expect(wrapper.find('h2').text()).toBe('开创者')
+    expect(JSON.parse(localStorage.getItem('lifepathx:reading-current:v1'))['destiny:1'].title).toBe('开创者')
+
+    await wrapper.find('.history-controls .danger').trigger('click')
+
+    expect(wrapper.find('.history-controls').exists()).toBe(false)
+    expect(JSON.parse(localStorage.getItem('lifepathx:reading-history:v2'))).toEqual([])
+  })
+
+  it('全局导入在弹层内校验，成功后关闭弹层并更新当前显示', async () => {
+    const wrapper = mount(MainPage)
+    const payload = await getExportedPayload(wrapper)
+
+    vi.restoreAllMocks()
+    payload.readings['destiny:1'] = {
+      title: '全局导入标题',
+      summary: '全局导入摘要',
+      strengths: ['全局导入优势'],
+      challenges: ['全局导入课题'],
+      advice: { self: ['全局导入建议'], relationship: ['全局导入相处建议'] },
+    }
+
+    await wrapper.find('.import-action').trigger('click')
+
+    const invalidFile = new File([JSON.stringify({ schemaVersion: 1, readings: {} })], 'invalid.json', {
+      type: 'application/json',
+    })
+    const fileInput = wrapper.find('.import-file')
+
+    Object.defineProperty(fileInput.element, 'files', { value: [invalidFile], configurable: true })
+    await fileInput.trigger('change')
+    await wrapper.find('.import-actions .primary').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.import-overlay').exists()).toBe(true)
+    expect(wrapper.text()).toContain('readings 缺少 destiny:1')
+
+    const validFile = new File([JSON.stringify(payload)], 'valid.json', { type: 'application/json' })
+
+    Object.defineProperty(fileInput.element, 'files', { value: [validFile], configurable: true })
+    await fileInput.trigger('change')
+    await wrapper.find('.import-actions .primary').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.import-overlay').exists()).toBe(false)
+    await findNumberTile(wrapper, 1).trigger('click')
+
+    expect(wrapper.find('h2').text()).toBe('全局导入标题')
+    expect(JSON.parse(localStorage.getItem('lifepathx:reading-current:v1'))['destiny:1'].summary).toBe('全局导入摘要')
   })
 })

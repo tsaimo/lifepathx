@@ -5,12 +5,21 @@ import NumberGrid from '../number-reading/NumberGrid.vue'
 import ReadingPanel from '../number-reading/ReadingPanel.vue'
 import ReadingTypeTabs from '../number-reading/ReadingTypeTabs.vue'
 import { findReadingType, getBirthdayRelatedDays, readingTypes } from '../number-reading/numberReadingTypes'
+import { loadCurrentReadings, saveCurrentReadings } from '../number-reading/readingCurrentStorage'
+import ReadingExportButton from '../reading-export/ReadingExportButton.vue'
+import { createReadingExportPayload } from '../reading-export/readingExport'
+import ReadingHistoryControls from '../reading-history/ReadingHistoryControls.vue'
+import { loadReadingHistory, saveReadingHistory } from '../reading-history/readingHistoryStorage'
+import ReadingImportDialog from '../reading-import/ReadingImportDialog.vue'
 
 const selected = ref(1)
 const selectedBirthdayDay = ref(1)
 const calculated = ref(null)
 const activeTypeId = ref('destiny')
 const isDarkTheme = ref(false)
+const currentReadings = ref(loadCurrentReadings())
+const readingHistory = ref(loadReadingHistory())
+const isImportDialogOpen = ref(false)
 const isBirthDateReady = computed(() => Boolean(calculated.value))
 const activeType = computed(() => findReadingType(activeTypeId.value))
 const activeReadings = computed(() => [...activeType.value.readings, ...(activeType.value.extraReadings ?? [])])
@@ -291,6 +300,54 @@ function selectNumber(reading) {
     }
   }
 }
+
+function persistCurrentReadings(nextCurrentReadings) {
+  currentReadings.value = nextCurrentReadings
+
+  try {
+    saveCurrentReadings(nextCurrentReadings)
+  } catch {
+    // Keep the in-memory edited readings usable if browser storage is unavailable.
+  }
+}
+
+function persistReadingHistory(nextHistory) {
+  readingHistory.value = nextHistory
+
+  try {
+    saveReadingHistory(nextHistory)
+  } catch {
+    // Keep the in-memory reading history usable if browser storage is unavailable.
+  }
+}
+
+function createHistoryVersion() {
+  const snapshot = createReadingExportPayload(readingTypes, currentReadings.value).readings
+  const nextVersion = {
+    id: `${Date.now()}-${readingHistory.value.length + 1}`,
+    savedAt: new Date().toISOString(),
+    readings: snapshot,
+  }
+
+  persistReadingHistory([...readingHistory.value, nextVersion])
+}
+
+function restoreHistoryVersion(version) {
+  persistCurrentReadings(version.readings)
+}
+
+function deleteHistoryVersion(versionId) {
+  persistReadingHistory(readingHistory.value.filter((version) => version.id !== versionId))
+}
+
+function openImportDialog() {
+  isImportDialogOpen.value = true
+}
+
+function closeImportDialog() {
+  isImportDialogOpen.value = false
+}
+
 </script>
 
 <template>
@@ -301,9 +358,22 @@ function selectNumber(reading) {
         <p>LifePathX</p>
         <h1>生命灵数</h1>
       </div>
-      <button class="theme-toggle" type="button" @click="isDarkTheme = !isDarkTheme">
-        {{ isDarkTheme ? '浅色' : '深色' }}
-      </button>
+      <div class="global-actions">
+        <div class="history-action-slot">
+          <ReadingHistoryControls
+            :history="readingHistory"
+            @restore="restoreHistoryVersion"
+            @delete="deleteHistoryVersion"
+          />
+        </div>
+        <div class="primary-actions">
+          <ReadingExportButton :reading-types="readingTypes" :current-readings="currentReadings" />
+          <button class="top-action import-action" type="button" @click="openImportDialog">导入 JSON</button>
+          <button class="top-action theme-toggle" type="button" @click="isDarkTheme = !isDarkTheme">
+            {{ isDarkTheme ? '浅色' : '深色' }}
+          </button>
+        </div>
+      </div>
     </section>
 
     <section class="content">
@@ -353,8 +423,22 @@ function selectNumber(reading) {
           </button>
         </div>
       </div>
-      <ReadingPanel :reading="currentReading" :type="activeType" :disabled="!isBirthDateReady" />
+      <ReadingPanel
+        :reading="currentReading"
+        :type="activeType"
+        :disabled="!isBirthDateReady"
+        :current-readings="currentReadings"
+        @create-history-version="createHistoryVersion"
+        @update-current-readings="persistCurrentReadings"
+      />
     </section>
+
+    <ReadingImportDialog
+      :open="isImportDialogOpen"
+      :reading-types="readingTypes"
+      @close="closeImportDialog"
+      @imported="persistCurrentReadings"
+    />
   </main>
 </template>
 
@@ -420,16 +504,46 @@ h1 {
   line-height: 1;
 }
 
-.theme-toggle {
+.global-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  min-width: min(760px, 100%);
+}
+
+.history-action-slot {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.primary-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.top-action {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-stroke);
   border-radius: 6px;
   color: var(--color-text-high);
   cursor: pointer;
   font: inherit;
+  font-size: 13px;
   font-weight: 800;
   min-height: 38px;
-  min-width: 72px;
+  padding: 7px 12px;
+}
+
+.top-action:hover,
+.top-action.primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
 .content {
