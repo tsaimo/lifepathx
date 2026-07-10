@@ -1,9 +1,14 @@
 import { serializeReading } from '../number-reading/readingContent'
-import { birthdayRelatedDays, readingTypes as sourceReadingTypes } from '../number-reading/numberReadingTypes'
+import {
+  birthdayRelatedDays,
+  interpretationNote,
+  readingTypes as sourceReadingTypes,
+} from '../number-reading/numberReadingTypes'
 
 export function createReadingPayload(currentReadings = {}) {
   return {
     birthdayRelatedDays,
+    interpretationNote,
     readingTypes: applyCurrentReadings(sourceReadingTypes, currentReadings),
   }
 }

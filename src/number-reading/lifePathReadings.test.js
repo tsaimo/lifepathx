@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
+import numberReadings from '../data/numberReadings.json'
 import { birthdayRelatedDays, readingTypes } from './numberReadingTypes'
 
 describe('lifePathReadings', () => {
+  it('提供解读使用说明，避免把内容作为决策依据', () => {
+    expect(numberReadings.interpretationNote).toContain('自我观察')
+    expect(numberReadings.interpretationNote).toContain('不作为')
+  })
+
   it('命运数覆盖 1-9 与页面额外主数', () => {
     const destinyType = readingTypes.find((type) => type.id === 'destiny')
 
@@ -59,9 +65,11 @@ describe('lifePathReadings', () => {
       '6-8',
     ])
     expect(connectionType.connectionLines.find((line) => line.id === '2-4').name).toBe('灵巧线')
+    expect(connectionType.sourceNote).toContain('洛书九宫')
     connectionType.connectionLines.forEach((line) => {
       expect(line.name).toBeTruthy()
       expect(line.sourceLabel).toContain('九宫格')
+      expect(line.sourceNote).toContain('不同流派')
       expect(line.summary).not.toContain('组成数字')
       expect(line.strengths).toHaveLength(3)
       expect(line.challenges).toHaveLength(3)
@@ -83,7 +91,7 @@ describe('lifePathReadings', () => {
 
     expect(destinyType.extraReadings.map((reading) => reading.number)).toEqual([11, 22, 33])
     expect(missingType.extraReadings.map((reading) => reading.number)).toEqual([0])
-    expect(missingType.extraReadings[0].summary).toContain('缺少一点‘留白’的智慧')
+    expect(missingType.extraReadings[0].summary).toContain('练习一点“留白”的智慧')
     expect(missingType.rules.blocks[0].lines.join('')).toContain('0-9')
   })
 
@@ -118,7 +126,7 @@ describe('lifePathReadings', () => {
       challenges: '容易卡住',
     })
     expect(missingOne.title).toContain('缺少 1')
-    expect(missingOne.summary).toContain('不是缺陷')
+    expect(missingOne.summary).toContain('不是缺陷或定论')
     expect(missingOne.summary).toContain('需要后天刻意练习')
     expect(missingOne.strengths.join('')).toContain('等待')
     expect(missingOne.advice.self.join('')).toContain('而非一个短板')

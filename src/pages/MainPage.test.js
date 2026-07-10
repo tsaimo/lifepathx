@@ -194,7 +194,7 @@ describe('MainPage', () => {
     await wrapper.findAll('.tab').find((tab) => tab.text().includes('空缺数')).trigger('click')
 
     expect(wrapper.text()).toContain('Missing Number 2')
-    expect(wrapper.text()).toContain('缺少了「2」的能量')
+    expect(wrapper.text()).toContain('没有显性强调「2」这组能力')
     expect(wrapper.text()).toContain('后天有意识地培养')
     expect(wrapper.findAll('.linked').some((tile) => tile.text().includes('7'))).toBe(true)
   })
@@ -266,7 +266,7 @@ describe('MainPage', () => {
 
     expect(wrapper.text()).toContain('需要补足')
     expect(wrapper.text()).toContain('容易卡住')
-    expect(wrapper.text()).toContain('不是缺陷')
+    expect(wrapper.text()).toContain('不是缺陷或定论')
     expect(wrapper.text()).toContain('后天有意识地培养')
   })
 

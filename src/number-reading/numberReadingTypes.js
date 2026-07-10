@@ -1,6 +1,7 @@
 import numberReadings from '../data/numberReadings.json'
 
 export const birthdayRelatedDays = numberReadings.birthdayRelatedDays
+export const interpretationNote = numberReadings.interpretationNote
 export const readingTypes = numberReadings.readingTypes
 
 export function findReadingType(typeId) {
