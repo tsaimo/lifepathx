@@ -1,6 +1,6 @@
 import { reduceToSingleDigit } from './lifePathCalculator'
 
-const MASTER_NUMBERS = [11, 22, 33, 44]
+const EXCELLENCE_NUMBERS = [11, 22, 33]
 
 function formatDatePart(value) {
   return String(value).padStart(2, '0')
@@ -20,11 +20,11 @@ function sumDigits(value) {
     .reduce((total, digit) => total + Number(digit), 0)
 }
 
-function formatReductionSteps(value, { preserveMasters = false } = {}) {
+function formatReductionSteps(value, { preserveExcellenceNumbers = false } = {}) {
   let current = Number(value)
   const steps = []
 
-  while (current > 9 && !(preserveMasters && MASTER_NUMBERS.includes(current))) {
+  while (current > 9 && !(preserveExcellenceNumbers && EXCELLENCE_NUMBERS.includes(current))) {
     const expression = String(current).split('').join(' + ')
     const next = sumDigits(current)
 
@@ -59,6 +59,23 @@ function formatDestinyOutcome(profile) {
   return `所以命运数落在 ${number}。`
 }
 
+function getDestinyExcellenceNumbers(profile) {
+  return [
+    ...Object.values(profile.destiny.parts),
+    profile.destiny.number,
+  ].filter((number, index, numbers) => EXCELLENCE_NUMBERS.includes(number) && numbers.indexOf(number) === index)
+}
+
+function formatExcellenceNote(profile) {
+  const excellenceNumbers = getDestinyExcellenceNumbers(profile)
+
+  if (!excellenceNumbers.length) {
+    return null
+  }
+
+  return `本次计算过程中出现 ${formatNumberList(excellenceNumbers)}，会先作为卓越数保留，并在九宫格下方高亮对应解读。`
+}
+
 export function createRuleExampleBlock(typeId, profile) {
   if (!profile) {
     return null
@@ -70,13 +87,15 @@ export function createRuleExampleBlock(typeId, profile) {
   if (typeId === 'destiny') {
     const parts = profile.destiny.parts
     const total = parts.month + parts.day + parts.year
+    const excellenceNote = formatExcellenceNote(profile)
 
     return {
       title: '计算示例',
       lines: [
-        `生日 ${birthDateLabel}：月 ${formatReductionWithInitial(month, { preserveMasters: true })}；日 ${formatReductionWithInitial(day, { preserveMasters: true })}；年 ${formatReductionWithInitial(year, { preserveMasters: true })}。`,
-        `总和 ${parts.month} + ${parts.day} + ${parts.year} = ${formatReductionAfterSum(total, { preserveMasters: true })}，${formatDestinyOutcome(profile)}`,
-      ],
+        `生日 ${birthDateLabel}：月 ${formatReductionWithInitial(month, { preserveExcellenceNumbers: true })}；日 ${formatReductionWithInitial(day, { preserveExcellenceNumbers: true })}；年 ${formatReductionWithInitial(year, { preserveExcellenceNumbers: true })}。`,
+        `总和 ${parts.month} + ${parts.day} + ${parts.year} = ${formatReductionAfterSum(total, { preserveExcellenceNumbers: true })}，${formatDestinyOutcome(profile)}`,
+        excellenceNote,
+      ].filter(Boolean),
     }
   }
 

@@ -48,6 +48,7 @@ const adjacentEdges = {
   bottom: ['left', 'right'],
   left: ['top', 'bottom'],
 }
+const excellenceNumbers = [11, 22, 33]
 
 function getLineCrossValue(number, start, end) {
   const point = gridPositions[number]
@@ -226,7 +227,10 @@ const linkedNumbers = computed(() => {
   }
 
   if (activeTypeId.value === 'destiny') {
-    return [calculated.value.destiny.root]
+    return [
+      calculated.value.destiny.root,
+      ...Object.values(calculated.value.destiny.parts).filter((number) => excellenceNumbers.includes(number)),
+    ].filter((number, index, numbers) => numbers.indexOf(number) === index)
   }
 
   if (activeTypeId.value === 'birthday') {

@@ -158,6 +158,28 @@ describe('MainPage', () => {
     expect(wrapper.text()).toContain('缺少 0：留白与潜能')
   })
 
+  it('命运数 44 继续归约到 8 而不作为额外卓越数展示', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.find('input[type="date"]').setValue('1993-11-29')
+
+    expect(wrapper.text()).toContain('命运数 8')
+    expect(wrapper.text()).not.toContain('命运数 44')
+    expect(wrapper.findAll('.extra-number-button').map((button) => button.text())).toEqual(['11', '22', '33'])
+    expect(wrapper.findAll('.tile').some((tile) => tile.classes().includes('active') && tile.text() === '8')).toBe(true)
+  })
+
+  it('命运数中途算出的卓越数会联动高亮额外数字', async () => {
+    const wrapper = mount(MainPage)
+
+    await wrapper.find('input[type="date"]').setValue('1900-01-11')
+
+    const excellenceButton = wrapper.findAll('.extra-number-button').find((button) => button.text() === '11')
+
+    expect(wrapper.text()).toContain('命运数 4')
+    expect(excellenceButton.classes()).toContain('linked')
+  })
+
   it('连线解读在三个数字形成直线时展示九宫格连线', async () => {
     const wrapper = mount(MainPage)
 

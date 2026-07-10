@@ -9,12 +9,12 @@ import {
 } from './lifePathCalculator'
 
 describe('lifePathCalculator', () => {
-  it('归约普通数字到个位并保留主数', () => {
+  it('归约普通数字到个位并保留卓越数', () => {
     expect(reduceLifePathNumber(26)).toBe(8)
     expect(reduceLifePathNumber(11)).toBe(11)
     expect(reduceLifePathNumber(22)).toBe(22)
     expect(reduceLifePathNumber(33)).toBe(33)
-    expect(reduceLifePathNumber(44)).toBe(44)
+    expect(reduceLifePathNumber(44)).toBe(8)
   })
 
   it('归约到九宫格数字', () => {
@@ -48,7 +48,7 @@ describe('lifePathCalculator', () => {
     expect(normalizeBirthDateInput('1989-08-18', referenceDate)).toBe('1989-08-18')
   })
 
-  it('主数结果联动根数', () => {
+  it('卓越数结果联动根数', () => {
     expect(calculateLifePath('1942-06-18')).toMatchObject({
       number: 22,
       root: 4,
@@ -60,9 +60,9 @@ describe('lifePathCalculator', () => {
       linkedNumbers: [33, 6],
     })
     expect(calculateLifePath('1993-11-29')).toMatchObject({
-      number: 44,
+      number: 8,
       root: 8,
-      linkedNumbers: [44, 8],
+      linkedNumbers: [8],
     })
   })
 

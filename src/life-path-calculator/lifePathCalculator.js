@@ -1,4 +1,4 @@
-const MASTER_NUMBERS = [11, 22, 33, 44]
+const EXCELLENCE_NUMBERS = [11, 22, 33]
 const GRID_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 const MISSING_NUMBERS = [0, ...GRID_NUMBERS]
 export const MIN_BIRTH_YEAR = 1900
@@ -21,11 +21,11 @@ function sumDigits(value) {
     .reduce((total, digit) => total + Number(digit), 0)
 }
 
-// 数字归约：主数 11/22/33 保留，其余归约到个位。
+// 数字归约：卓越数 11/22/33 保留，其余归约到个位。
 export function reduceLifePathNumber(value) {
   let number = Number(value)
 
-  while (number > 9 && !MASTER_NUMBERS.includes(number)) {
+  while (number > 9 && !EXCELLENCE_NUMBERS.includes(number)) {
     number = sumDigits(number)
   }
 
@@ -127,7 +127,7 @@ export function calculateLifePath(birthDate) {
     year: reduceLifePathNumber(sumDigits(year)),
   }
   const number = reduceLifePathNumber(parts.month + parts.day + parts.year)
-  const root = MASTER_NUMBERS.includes(number) ? reduceLifePathNumber(sumDigits(number)) : number
+  const root = EXCELLENCE_NUMBERS.includes(number) ? reduceLifePathNumber(sumDigits(number)) : number
 
   return {
     number,

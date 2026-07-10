@@ -8,7 +8,7 @@ describe('lifePathReadings', () => {
     expect(numberReadings.interpretationNote).toContain('不作为')
   })
 
-  it('命运数覆盖 1-9 与页面额外主数', () => {
+  it('命运数覆盖 1-9 与页面额外卓越数', () => {
     const destinyType = readingTypes.find((type) => type.id === 'destiny')
 
     expect(destinyType.readings.map((reading) => reading.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])

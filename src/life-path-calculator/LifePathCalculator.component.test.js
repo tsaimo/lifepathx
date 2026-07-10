@@ -120,11 +120,24 @@ describe('LifePathCalculator', () => {
     expect(wrapper.text()).toContain('生日 1990-12-31')
     expect(wrapper.text()).toContain('月 1 + 2 = 3；日 3 + 1 = 4；年 1 + 9 + 9 + 0 = 19，1 + 9 = 10，1 + 0 = 1')
     expect(wrapper.text()).toContain('总和 3 + 4 + 1 = 8，所以命运数落在 8。')
+    expect(wrapper.text()).not.toContain('本次计算过程中出现')
 
     await input.setValue('2001-02-03')
 
     expect(wrapper.text()).toContain('生日 2001-02-03')
     expect(wrapper.text()).toContain('总和 2 + 3 + 3 = 8，所以命运数落在 8。')
     expect(wrapper.text()).not.toContain('生日 1990-12-31')
+  })
+
+  it('计算规则示例在出现卓越数时说明保留和高亮规则', async () => {
+    const wrapper = mount(LifePathCalculator, {
+      props: { activeType: readingTypes[0] },
+    })
+
+    await wrapper.find('input[type="date"]').setValue('1900-01-11')
+    await wrapper.find('.rules-toggle').trigger('click')
+
+    expect(wrapper.text()).toContain('生日 1900-01-11')
+    expect(wrapper.text()).toContain('本次计算过程中出现 11，会先作为卓越数保留，并在九宫格下方高亮对应解读。')
   })
 })
