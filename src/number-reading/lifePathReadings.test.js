@@ -47,6 +47,13 @@ describe('lifePathReadings', () => {
     })
   })
 
+  it('计算规则数据不保留固定生日示例', () => {
+    const ruleText = readingTypes.flatMap((type) => type.rules.blocks.flatMap((block) => block.lines)).join('')
+
+    expect(ruleText).not.toContain('1989-08-18')
+    expect(ruleText).toContain('页面会根据当前填写的生日实时生成计算示例')
+  })
+
   it('连线解读提供九宫格连线规则', () => {
     const connectionType = readingTypes.find((type) => type.id === 'connection')
 

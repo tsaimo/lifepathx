@@ -1,8 +1,9 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { calculateNumerologyProfile, getDefaultBirthDate, normalizeBirthDateInput } from './lifePathCalculator'
+import { createRuleExampleBlock } from './lifePathRuleExamples'
 
-defineProps({
+const props = defineProps({
   activeType: { type: Object, required: true },
 })
 
@@ -10,6 +11,12 @@ const emit = defineEmits(['calculated'])
 const birthDate = ref(getDefaultBirthDate())
 const showRules = ref(false)
 const result = computed(() => calculateNumerologyProfile(birthDate.value))
+
+const ruleBlocks = computed(() => {
+  const dynamicExampleBlock = createRuleExampleBlock(props.activeType.id, result.value)
+
+  return props.activeType.rules.blocks.map((block) => (block.title === '计算示例' && dynamicExampleBlock ? dynamicExampleBlock : block))
+})
 
 function normalizeBirthDate() {
   const normalizedDate = normalizeBirthDateInput(birthDate.value)
@@ -84,7 +91,7 @@ watch(result, (value) => emit('calculated', value), { immediate: true })
             <button class="rules-close" type="button" aria-label="关闭计算规则" @click="showRules = false">×</button>
           </div>
 
-          <div v-for="block in activeType.rules.blocks" :key="block.title" class="rule-block">
+          <div v-for="block in ruleBlocks" :key="block.title" class="rule-block">
             <h3>{{ block.title }}</h3>
             <p v-for="line in block.lines" :key="line">{{ line }}</p>
           </div>

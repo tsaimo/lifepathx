@@ -118,6 +118,24 @@ describe('MainPage', () => {
     expect(wrapper.findAll('.tile').some((tile) => tile.classes().includes('linked') && tile.text() === '4')).toBe(true)
   })
 
+  it('计算规则弹层使用当前填写的生日作为示例', async () => {
+    const wrapper = mount(MainPage)
+    const input = wrapper.find('input[type="date"]')
+
+    await input.setValue('1990-12-31')
+    await wrapper.find('.rules-toggle').trigger('click')
+
+    expect(wrapper.find('.rules-overlay').exists()).toBe(true)
+    expect(wrapper.text()).toContain('生日 1990-12-31')
+    expect(wrapper.text()).toContain('总和 3 + 4 + 1 = 8，所以命运数落在 8。')
+
+    await input.setValue('2001-02-03')
+
+    expect(wrapper.text()).toContain('生日 2001-02-03')
+    expect(wrapper.text()).toContain('总和 2 + 3 + 3 = 8，所以命运数落在 8。')
+    expect(wrapper.text()).not.toContain('生日 1990-12-31')
+  })
+
   it('命运数和空缺数在九宫格下方展示额外数字解读', async () => {
     const wrapper = mount(MainPage)
 

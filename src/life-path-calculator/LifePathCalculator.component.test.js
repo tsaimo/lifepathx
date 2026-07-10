@@ -81,6 +81,8 @@ describe('LifePathCalculator', () => {
   })
 
   it('通过覆盖层展开和收起计算规则', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 8))
     const wrapper = mount(LifePathCalculator, {
       props: { activeType: readingTypes[0] },
     })
@@ -96,7 +98,7 @@ describe('LifePathCalculator', () => {
     expect(wrapper.find('.rules-overlay').attributes('role')).toBe('dialog')
     expect(wrapper.find('.rules-overlay').attributes('aria-modal')).toBe('true')
     expect(wrapper.text()).toContain('命运数 = 归约(月) + 归约(日) + 归约(年)')
-    expect(wrapper.text()).toContain('生日 1989-08-18')
+    expect(wrapper.text()).toContain('生日 2008-07-08')
     expect(toggle.attributes('aria-expanded')).toBe('true')
 
     await wrapper.find('.rules-close').trigger('click')
@@ -104,5 +106,25 @@ describe('LifePathCalculator', () => {
     expect(wrapper.find('.rules-overlay').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('命运数 = 归约(月) + 归约(日) + 归约(年)')
     expect(toggle.attributes('aria-expanded')).toBe('false')
+  })
+
+  it('计算规则示例随当前填写的生日同步更新', async () => {
+    const wrapper = mount(LifePathCalculator, {
+      props: { activeType: readingTypes[0] },
+    })
+    const input = wrapper.find('input[type="date"]')
+
+    await input.setValue('1990-12-31')
+    await wrapper.find('.rules-toggle').trigger('click')
+
+    expect(wrapper.text()).toContain('生日 1990-12-31')
+    expect(wrapper.text()).toContain('月 1 + 2 = 3；日 3 + 1 = 4；年 1 + 9 + 9 + 0 = 19，1 + 9 = 10，1 + 0 = 1')
+    expect(wrapper.text()).toContain('总和 3 + 4 + 1 = 8，所以命运数落在 8。')
+
+    await input.setValue('2001-02-03')
+
+    expect(wrapper.text()).toContain('生日 2001-02-03')
+    expect(wrapper.text()).toContain('总和 2 + 3 + 3 = 8，所以命运数落在 8。')
+    expect(wrapper.text()).not.toContain('生日 1990-12-31')
   })
 })
